@@ -1,39 +1,69 @@
-document.getElementById('reqWithdraw').onclick = () => {
-  const to = document.getElementById('toAddress').value;
+let distance = 0;
+let earned = 0;
+let wallet = 0;
+let running = false;
+
+// تحديث الواجهة
+function updateUI() {
+  document.getElementById("distance").textContent = distance;
+  document.getElementById("earned").textContent = earned;
+  document.getElementById("wallet").textContent = wallet.toFixed(2);
+  document.getElementById("status").textContent = running ? "تعمل" : "متوقفة";
+}
+
+// بدء القيادة
+document.getElementById("startBtn").onclick = () => {
+  if (!running) {
+    running = true;
+    gameLoop();
+  }
+};
+
+// التوقف
+document.getElementById("stopBtn").onclick = () => {
+  running = false;
+};
+
+// حلقة اللعبة
+function gameLoop() {
+  if (!running) return;
+
+  distance += 10;
+  earned += 0.01;
+  wallet += 0.01;
+  updateUI();
+
+  setTimeout(gameLoop, 500);
+}
+
+// تنفيذ السحب
+document.getElementById('reqWithdraw').onclick = async () => {
+  const to = document.getElementById('toAddress').value.trim();
   const amt = parseFloat(document.getElementById('amount').value);
 
-  if (!to.startsWith("T") || amt <= 0 || wallet < amt) {
+  if (!to.startsWith('T') || amt <= 0 || wallet < amt) {
     alert("تحقق من العنوان أو الرصيد.");
     return;
   }
 
-  const fee = Math.max(1, amt * 0.005); // 0.5% أو 1 TRX كحد أدنى
+  try {
+    const response = await fetch('/withdraw-usdt', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ toAddress: to, amount: amt })
+    });
 
-  if (serverWallet < fee) {
-    alert("محفظة الخادم لا تحتوي على رسوم كافية.");
-    return;
-  }
+    const data = await response.json();
 
-  fetch('http://localhost:3000/api/send-trx', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      to,
-      amount: amt
-    })
-  })
-  .then(res => res.json())
-  .then(data => {
     if (data.success) {
       wallet -= amt;
-      serverWallet -= fee;
       updateUI();
-      alert(`✅ تم إرسال ${amt} TRX إلى ${to}. رسوم التحويل: ${fee.toFixed(2)} TRX.`);
+      alert(`✅ تم السحب بنجاح!\nTX ID: ${data.txId}`);
     } else {
-      alert(`❌ فشل التحويل: ${data.message}`);
+      alert(`❌ فشل السحب: ${data.error || 'خطأ غير معروف'}`);
     }
-  })
-  .catch(err => alert("حدث خطأ أثناء الاتصال بالخادم."));
+  } catch (err) {
+    console.error(err);
+    alert('❌ فشل السحب: خطأ في الاتصال بالخادم');
+  }
 };
