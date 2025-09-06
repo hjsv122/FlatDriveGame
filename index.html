@@ -1,35 +1,64 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FlatDrive TRC20</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>FlatDrive - النسخة النهائية</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="game-container">
-    <h1>🚗 FlatDrive — النسخة النهائية TRC20</h1>
-    <div id="stats">
-      <p>TRX المكتسب: <span id="trxEarned">0</span></p>
-      <p>المسافة المقطوعة: <span id="distance">0</span> متر</p>
-      <p>رصيد داخلي (USDT): <span id="wallet">0.00</span></p>
-      <p>تمويل اللعبة (USDT): <span id="gameFund">0.00</span></p>
-      <p>محفظة الخادم (TRX): <span id="serverTRX">0.00</span></p>
-      <p>محفظة الخادم (USDT): <span id="serverUSDT">0.00</span></p>
-      <p>الحالة: <span id="status">متوقفة</span></p>
+  <div class="game-container">      
+    <h1>🚗 FlatDrive — النسخة النهائية TRC20</h1>      
+    <div class="info">      
+      <div>TRX المكتسب: <strong id="trxEarned">0</strong></div>      
+      <div>المسافة المقطوعة: <span id="distance">0</span> متر</div>      
+      <div>رصيد داخلي (USDT): <span id="wallet">0.00</span></div>      
+      <div>تمويل اللعبة (USDT): <span id="gameFund">0.00</span></div>      
+      <div>محفظة الخادم (TRX): <span id="serverWallet">0.00</span></div>      
+      <div>محفظة الخادم (USDT): <span id="serverWalletUSDT">0.00</span></div>      
+      <div>الحالة: <span id="status">متوقفة</span></div>      
+    </div>      
+
+    <canvas id="gameCanvas"></canvas>  
+
+    <div class="controls">      
+      <select id="carColor">      
+        <option value="#ff6b6b">أحمر</option>      
+        <option value="#4ade80">أخضر</option>      
+        <option value="#3b82f6">أزرق</option>      
+        <option value="#facc15">أصفر</option>      
+      </select>      
+      <button id="startBtn">ابدأ القيادة</button>      
+      <button id="stopBtn">توقف</button>      
+      <button id="collectBtn">اجمع (تحويل)</button>      
+      <button id="convertFund">تحويل تمويل اللعبة</button>      
+    </div>      
+
+    <div class="fund-panel">      
+      <h2>تمويل محفظة الخادم</h2>      
+      <input id="fundAmount" type="number" min="0" placeholder="كم TRX تريد إرسال؟">      
+      <button id="fundServerBtn">إيداع</button>      
+    </div>      
+
+    <div class="usdt-server-panel">      
+      <h2>تحويل من المحفظة الداخلية إلى محفظة الخادم (USDT)</h2>      
+      <input id="usdtToServerAmount" type="number" min="0" placeholder="كم USDT تريد إرسال؟">      
+      <button id="sendUSDTToServer">إرسال</button>      
+    </div>  
+
+    <div class="server-to-wallet-panel">
+      <h2>سحب من محفظة الخادم إلى المحفظة الداخلية (USDT)</h2>
+      <input id="serverToWalletAmount" type="number" min="0" placeholder="كم USDT تريد سحبه؟">
+      <button id="withdrawFromServer">سحب</button>
     </div>
 
-    <button id="startGame">ابدأ القيادة</button>
-    <button id="stopGame">توقف</button>
-
-    <div class="withdraw">
-      <h3>سحب USDT TRC20</h3>
-      <input type="text" id="toAddress" placeholder="عنوان TRC20 يبدأ بـ T...">
-      <input type="number" id="amount" placeholder="المبلغ USDT">
-      <button id="reqWithdraw">اطلب سحب</button>
-    </div>
+    <div class="withdraw-panel">      
+      <h2>طلب سحب</h2>      
+      <input id="toAddress" placeholder="عنوان TRX يبدأ بـ T..." />      
+      <input id="amount" type="number" placeholder="المبلغ USDT" />      
+      <button id="reqWithdraw">اطلب سحب</button>      
+    </div>      
   </div>
 
-<script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
