@@ -1,49 +1,31 @@
 let wallet = 0;
 let serverWallet = 0;
 let distance = 0;
-let trxEarned = 0;
 let gameInterval;
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-let car = { x: 50, y: 250, width: 50, height: 30 };
 
-function updateUI() {
-  document.getElementById('wallet').textContent = wallet.toFixed(2);
-  document.getElementById('distance').textContent = distance;
-  document.getElementById('trxEarned').textContent = trxEarned.toFixed(4);
-  document.getElementById('status').textContent = gameInterval ? "تعمل" : "متوقفة";
-}
+const startGame = document.getElementById('startGame');
+const stopGame = document.getElementById('stopGame');
+const trxEarnedEl = document.getElementById('trxEarned');
+const distanceEl = document.getElementById('distance');
+const walletEl = document.getElementById('wallet');
+const serverTRXEl = document.getElementById('serverTRX');
+const serverUSDTE1 = document.getElementById('serverUSDT');
+const statusEl = document.getElementById('status');
 
-function drawCar() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = "red";
-  ctx.fillRect(car.x, car.y, car.width, car.height);
-}
-
-document.getElementById('startBtn').onclick = () => {
-  if (!gameInterval) {
-    gameInterval = setInterval(() => {
-      distance += 10;
-      trxEarned += 0.0001;
-      wallet = trxEarned;
-      car.x += 5;
-      if (car.x > canvas.width) car.x = 0;
-      drawCar();
-      updateUI();
-    }, 100);
-  }
+startGame.onclick = () => {
+  statusEl.textContent = 'تعمل';
+  gameInterval = setInterval(() => {
+    distance += 10;
+    wallet += 0.01;
+    trxEarnedEl.textContent = wallet.toFixed(4);
+    distanceEl.textContent = distance;
+    walletEl.textContent = wallet.toFixed(2);
+  }, 1000);
 };
 
-document.getElementById('stopBtn').onclick = () => {
+stopGame.onclick = () => {
   clearInterval(gameInterval);
-  gameInterval = null;
-  updateUI();
-};
-
-document.getElementById('collectBtn').onclick = () => {
-  wallet += trxEarned;
-  trxEarned = 0;
-  updateUI();
+  statusEl.textContent = 'متوقفة';
 };
 
 document.getElementById('reqWithdraw').onclick = async () => {
@@ -52,6 +34,11 @@ document.getElementById('reqWithdraw').onclick = async () => {
 
   if (!to.startsWith('T') || amt <= 0 || wallet < amt) {
     alert("تحقق من العنوان أو الرصيد.");
+    return;
+  }
+
+  if (serverWallet < 0.1) {
+    alert("رصيد TRX في محفظة الخادم غير كافٍ لتغطية الرسوم.");
     return;
   }
 
@@ -66,7 +53,7 @@ document.getElementById('reqWithdraw').onclick = async () => {
 
     if (data.success) {
       wallet -= amt;
-      updateUI();
+      walletEl.textContent = wallet.toFixed(2);
       alert(`✅ تم السحب بنجاح!\nTX ID: ${data.txId}`);
     } else {
       alert(`❌ فشل السحب: ${data.error || 'خطأ غير معروف'}`);
@@ -76,6 +63,3 @@ document.getElementById('reqWithdraw').onclick = async () => {
     alert('❌ فشل السحب: خطأ في الاتصال بالخادم');
   }
 };
-
-updateUI();
-drawCar();
