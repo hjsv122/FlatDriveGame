@@ -11,21 +11,20 @@ app.use(express.json());
 app.use(express.static(__dirname));
 
 const tronWeb = new TronWeb({
-  fullHost: 'https://api.shasta.trongrid.io', // شبكة Shasta Testnet
-  privateKey: process.env.PRIVATE_KEY
+  fullHost: 'https://api.shasta.trongrid.io', // شبكة Shasta تجريبية
+  privateKey: process.env.PRIVATE_KEY          // يستخدم المفتاح السري لمحفظتك بالفعل
 });
 
-// ✅ طباعة عنوان محفظة الخادم عند بدء التشغيل
+// طباعة عنوان المحفظة في السجل
 (async () => {
   try {
-    const address = tronWeb.defaultAddress.base58;
-    console.log(`🔐 عنوان محفظة الخادم (Shasta): ${address}`);
+    const addr = tronWeb.defaultAddress.base58;
+    console.log(`🔐 الآن الخادم يستخدم محفظتك: ${addr}`);
   } catch (err) {
-    console.error("❌ فشل استخراج عنوان محفظة الخادم:", err.message);
+    console.error("❌ خطأ في استخراج عنوان المحفظة:", err.message);
   }
 })();
 
-// عقد USDT على شبكة Shasta Testnet (ممكن تغييره إذا لزم)
 const USDT_ADDRESS = 'TXLAQ63Xg1NAzckPwKHvzw7CSEmLMEqcdj';
 
 app.post('/withdraw-usdt', async (req, res) => {
@@ -33,9 +32,7 @@ app.post('/withdraw-usdt', async (req, res) => {
   if (!toAddress || !amount || amount <= 0)
     return res.json({ success: false, message: "بيانات غير صحيحة" });
   try {
-    const tx = await tronWeb.contract().at(USDT_ADDRESS).then(contract =>
-      contract.transfer(toAddress, tronWeb.toSun(amount)).send()
-    );
+    const tx = await tronWeb.contract().at(USDT_ADDRESS).then(c => c.transfer(toAddress, tronWeb.toSun(amount)).send());
     res.json({ success: true, tx });
   } catch (err) {
     res.json({ success: false, message: err.message });
@@ -55,4 +52,4 @@ app.post('/withdraw-trx', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 الخادم يعمل على Shasta | المنفذ ${PORT}`));
