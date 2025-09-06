@@ -6,34 +6,22 @@ body {
 }
 
 .game-container {
-  max-width: 700px;
+  max-width: 500px;
   margin: auto;
   background: #fff;
-  padding: 15px;
+  padding: 20px;
   border-radius: 10px;
   box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
 
-.stats p {
-  margin: 5px 0;
-}
-
-.controls button, .withdraw button {
-  margin: 5px;
+button {
   padding: 10px 20px;
-  font-size: 16px;
+  margin: 5px;
   cursor: pointer;
 }
 
-canvas {
-  display: block;
-  margin: 20px auto;
-  background: #cce6ff;
-  border: 2px solid #333;
-}
-
 .withdraw input {
-  padding: 8px;
+  padding: 5px;
   margin: 5px;
-  width: 200px;
+  width: 80%;
 }
