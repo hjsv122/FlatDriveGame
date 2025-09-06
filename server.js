@@ -1,3 +1,5 @@
+// server.js
+
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
@@ -18,12 +20,12 @@ const tronWeb = new TronWeb({
 // طباعة العنوان للتأكيد
 (async () => {
   const addr = tronWeb.address.fromPrivateKey(process.env.PRIVATE_KEY);
-  console.log(`🔐 محفظة الخادم: ${addr}`);
+  console.log(`🔐 الآن الخادم يستخدم محفظتك: ${addr}`);
 })();
 
 const USDT_ADDRESS = 'TXLAQ63Xg1NAzckPwKHvzw7CSEmLMEqcdj';
 
-// API: رصيد المحفظة
+// Endpoint لجلب الرصيد
 app.get('/server-balance', async (req, res) => {
   try {
     const address = tronWeb.address.fromPrivateKey(process.env.PRIVATE_KEY);
@@ -40,7 +42,7 @@ app.get('/server-balance', async (req, res) => {
   }
 });
 
-// API: سحب USDT
+// Endpoint للسحب (USDT)
 app.post('/withdraw-usdt', async (req, res) => {
   const { toAddress, amount } = req.body;
   if (!toAddress || !amount || amount <= 0) {
@@ -56,4 +58,4 @@ app.post('/withdraw-usdt', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log(`🚀 Shasta server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 الخادم يعمل على Shasta | المنفذ ${PORT}`));
