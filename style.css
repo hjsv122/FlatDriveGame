@@ -1,17 +1,75 @@
 body {
   font-family: Arial, sans-serif;
+  background-color: #1e1e2f;
+  color: #fff;
   text-align: center;
-  background-color: #eef2f7;
-  padding: 20px;
+  margin: 0;
+  padding: 0;
 }
 
-button {
-  margin: 5px;
+.container {
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 20px;
+  background: #2a2a40;
+  border-radius: 12px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+}
+
+h1 {
+  color: #4cafef;
+}
+
+.stats p {
+  font-size: 16px;
+  margin: 5px 0;
+}
+
+.controls button {
+  margin: 10px;
   padding: 10px 20px;
   font-size: 16px;
+  background: #4cafef;
+  border: none;
+  border-radius: 8px;
   cursor: pointer;
+  color: #fff;
+  transition: 0.3s;
 }
-input {
-  padding: 5px;
+
+.controls button:hover {
+  background: #3a9bdc;
+}
+
+.withdraw {
+  margin-top: 20px;
+}
+
+.withdraw input {
   margin: 5px;
+  padding: 10px;
+  width: 80%;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.withdraw button {
+  background: #27ae60;
+  color: #fff;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-top: 10px;
+}
+
+.withdraw button:hover {
+  background: #219150;
+}
+
+#message {
+  margin-top: 15px;
+  font-weight: bold;
 }
