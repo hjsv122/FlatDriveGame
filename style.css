@@ -1,11 +1,11 @@
-body {  
-  font-family: Arial, sans-serif;  
-  background: #0f172a;  
-  color: #e6eef8;  
-  padding: 20px;  
-  display: flex;  
-  justify-content: center;  
-}  
+body {
+  font-family: Arial, sans-serif;
+  background: #0f172a;
+  color: #e6eef8;
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+}
 
 .game-container {
   width: 760px;
