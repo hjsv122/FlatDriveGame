@@ -1,70 +1,17 @@
-/* ملف: client/style.css */
 body {
   font-family: Arial, sans-serif;
-  background: #0f172a;
-  color: #e6eef8;
+  text-align: center;
+  background-color: #eef2f7;
   padding: 20px;
-  display: flex;
-  justify-content: center;
-}
-
-.game-container {
-  width: 760px;
-  background: #0b1220;
-  padding: 18px;
-  border-radius: 10px;
-  box-shadow: 0 6px 24px rgba(2, 6, 23, 0.6);
-}
-
-h1 {
-  font-size: 20px;
-  margin-bottom: 10px;
-}
-
-.info {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  background: #071026;
-  padding: 10px;
-  border-radius: 8px;
-  margin-bottom: 10px;
-}
-
-canvas {
-  width: 100%;
-  height: 140px;
-  background: #02111b;
-  border-radius: 8px;
-  display: block;
-  margin: 12px 0;
-}
-
-.controls,
-.fund-panel,
-.withdraw-panel,
-.usdt-server-panel,
-.server-to-wallet-panel {
-  margin-bottom: 16px;
 }
 
 button {
-  background: #0ea5a6;
-  color: #041014;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 8px;
+  margin: 5px;
+  padding: 10px 20px;
+  font-size: 16px;
   cursor: pointer;
-  margin: 4px 0;
 }
-
-input,
-select {
-  width: 100%;
-  padding: 8px;
-  border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: #02121a;
-  color: white;
-  margin-top: 6px;
+input {
+  padding: 5px;
+  margin: 5px;
 }
