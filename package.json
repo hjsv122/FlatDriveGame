@@ -1,7 +1,7 @@
 {
-  "name": "flatdrivegame",
+  "name": "FlatDriveGame",
   "version": "1.0.0",
-  "description": "FlatDrive TRC20 Game",
+  "description": "FlatDrive — لعبة TRC20",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
@@ -9,7 +9,7 @@
   "dependencies": {
     "express": "^4.18.2",
     "body-parser": "^1.20.2",
-    "tronweb": "^3.0.0",
-    "dotenv": "^16.3.1"
-  }
+    "tronweb": "^3.0.0"
+  },
+  "type": "commonjs"
 }
