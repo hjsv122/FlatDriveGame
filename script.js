@@ -1,21 +1,18 @@
 document.addEventListener("DOMContentLoaded", () => {
   const canvas = document.getElementById('gameCanvas');
   const ctx = canvas.getContext('2d');
-  canvas.width = 720;
-  canvas.height = 140;
+  const width = canvas.width = 720;
+  const height = canvas.height = 140;
 
-  let running = false;
-  let trxEarned = 0;
-  let wallet = 0;
-  let gameFund = 0;
-  let distance = 0;
-  let serverWallet = 0;
-  let serverWalletUSDT = 0;
+  let running = false,
+      trxEarned = 0,
+      wallet = 0,
+      gameFund = 0,
+      distance = 0,
+      serverWallet = 0,
+      serverWalletUSDT = 0;
 
-  let carX = 10;
-  let carColor = '#ff6b6b';
-  let speedLevel = 0;
-  let speed = 10;
+  let carX = 10, carColor = '#ff6b6b', speedLevel = 0, speed = 10;
 
   const updateUI = () => {
     document.getElementById('trxEarned').textContent = Math.floor(trxEarned);
@@ -27,145 +24,107 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const draw = () => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, width, height);
     ctx.fillStyle = '#08323a';
-    ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
+    ctx.fillRect(0, height - 20, width, 20);
     ctx.fillStyle = carColor;
-    ctx.fillRect(carX, canvas.height - 44, 60, 28);
+    ctx.fillRect(carX, height - 44, 60, 28);
     ctx.fillStyle = '#061119';
     ctx.beginPath();
-    ctx.arc(carX + 12, canvas.height - 12, 8, 0, Math.PI * 2);
+    ctx.arc(carX + 12, height - 12, 8, 0, Math.PI * 2);
     ctx.fill();
     ctx.beginPath();
-    ctx.arc(carX + 48, canvas.height - 12, 8, 0, Math.PI * 2);
+    ctx.arc(carX + 48, height - 12, 8, 0, Math.PI * 2);
     ctx.fill();
   };
 
   const gameTick = () => {
     if (!running) return;
-    carX += speed;
-    if (carX > canvas.width) carX = -80;
+    carX = (carX + speed) % (width + 80) - 80;
     distance += speed;
-    if (Math.random() < 0.7) trxEarned += 1;
+    if (Math.random() < 0.7) trxEarned++;
     updateUI();
     draw();
     requestAnimationFrame(gameTick);
   };
 
-  document.getElementById('carColor').onchange = e => {
-    carColor = e.target.value;
-  };
-
+  document.getElementById('carColor').onchange = e => carColor = e.target.value;
   document.getElementById('startBtn').onclick = () => {
     speedLevel++;
-    if (speedLevel === 1) speed = 10;
-    else if (speedLevel === 2) speed = 20;
-    else if (speedLevel === 3) speed = 35;
-    else if (speedLevel >= 4) speed = 60;
+    speed = speedLevel >= 4 ? 60 : speedLevel === 3 ? 35 : speedLevel === 2 ? 20 : 10;
     running = true;
     document.getElementById('status').textContent = 'تعمل';
     gameTick();
   };
-
   document.getElementById('stopBtn').onclick = () => {
     running = false;
     document.getElementById('status').textContent = 'متوقفة';
   };
 
   document.getElementById('collectBtn').onclick = () => {
-    if (trxEarned < 1) {
-      alert("لا توجد أرباح لجمعها.");
-      return;
-    }
-    const rate = 1;
-    const totalUSDT = trxEarned * rate;
+    if (trxEarned < 1) return alert("لا توجد أرباح لجمعها.");
+    const totalUSDT = trxEarned;
     const fee = totalUSDT * 0.03;
     const netUSDT = totalUSDT - fee;
     gameFund += fee;
     wallet += netUSDT;
     trxEarned = 0;
     updateUI();
-    alert(`تم تحويل ${netUSDT.toFixed(2)} USDT إلى محفظتك الداخلية (خصم 3% تمويل).`);
+    alert(`تم تحويل ${netUSDT.toFixed(2)} USDT (خصم 3%).`);
   };
 
   document.getElementById('convertFund').onclick = () => {
-    if (gameFund <= 0) {
-      alert("لا يوجد رصيد في محفظة التمويل.");
-      return;
-    }
+    if (!gameFund) return alert("لا يوجد تمويل للعبة.");
     wallet += gameFund;
     gameFund = 0;
     updateUI();
-    alert("✅ تم تحويل تمويل اللعبة إلى محفظتك الداخلية.");
-  };
-
-  document.getElementById('fundServerBtn').onclick = () => {
-    const amt = parseFloat(document.getElementById('fundAmount').value);
-    if (isNaN(amt) || amt <= 0 || amt > trxEarned) {
-      alert("مبلغ غير صحيح أو أكبر من أرباحك.");
-      return;
-    }
-    trxEarned -= amt;
-    serverWallet += amt;
-    updateUI();
-    alert(`✅ تم تحويل ${amt} TRX إلى محفظة الخادم.`);
+    alert("تم تحويل تمويل اللعبة إلى محفظتك.");
   };
 
   document.getElementById('reqWithdraw').onclick = async () => {
     const to = document.getElementById('toAddress').value;
     const amt = parseFloat(document.getElementById('amount').value);
-    if (!to.startsWith("T") || amt <= 0 || wallet < amt) {
-      alert("تحقق من العنوان أو الرصيد.");
-      return;
-    }
+    if (!to.startsWith("T") || !amt || wallet < amt) return alert("تحقق من العنوان أو الرصيد.");
     try {
-      let res = await fetch('/withdraw-usdt', {
+      const res = await fetch('/withdraw-usdt', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ toAddress: to, amount: amt })
       });
-      let data = await res.json();
+      const data = await res.json();
       if (data.success) {
         wallet -= amt;
         updateUI();
-        alert(`✅ تم سحب ${amt.toFixed(2)} USDT بنجاح.`);
+        alert(`تم سحب ${amt.toFixed(2)} USDT.`);
       } else {
-        alert(`❌ فشل السحب: ${data.message}`);
+        alert(`فشل السحب: ${data.message}`);
       }
-    } catch (e) {
-      alert("❌ خطأ بالخادم.");
+    } catch {
+      alert("خطأ في الخادم.");
     }
   };
 
   document.getElementById('sendUSDTToServer').onclick = () => {
     const amt = parseFloat(document.getElementById('usdtToServerAmount').value);
-    if (isNaN(amt) || amt <= 0 || amt > wallet) {
-      alert("مبلغ غير صحيح أو أكبر من رصيدك الداخلي.");
-      return;
-    }
+    if (!amt || amt > wallet) return alert("مبلغ غير صالح أو أكبر من رصيدك.");
     wallet -= amt;
     serverWalletUSDT += amt;
     updateUI();
-    alert(`✅ تم تحويل ${amt.toFixed(2)} USDT من محفظتك الداخلية إلى محفظة الخادم.`);
+    alert(`تم تحويل ${amt.toFixed(2)} USDT إلى محفظة الخادم.`);
   };
 
   document.getElementById('withdrawFromServer').onclick = () => {
     const amt = parseFloat(document.getElementById('serverToWalletAmount').value);
-    if (isNaN(amt) || amt <= 0) {
-      alert("يرجى إدخال مبلغ صالح.");
-      return;
-    }
-    if (serverWalletUSDT < amt) {
-      alert("لا يوجد رصيد كافٍ في محفظة الخادم.");
-      return;
-    }
+    if (!amt || amt > serverWalletUSDT) return alert("رصيد غير كافٍ.");
     serverWalletUSDT -= amt;
     wallet += amt;
     updateUI();
-    alert(`✅ تم سحب ${amt.toFixed(2)} USDT من محفظة الخادم إلى محفظتك الداخلية.`);
+    alert(`تم سحب ${amt.toFixed(2)} USDT من محفظة الخادم.`);
   };
 
-  // ✅ جلب رصيد الخادم من السيرفر
+  updateUI();
+  draw();
+
   async function fetchServerBalance() {
     try {
       const res = await fetch('/server-balance');
@@ -175,16 +134,12 @@ document.addEventListener("DOMContentLoaded", () => {
         serverWalletUSDT = parseFloat(data.usdtBalance);
         updateUI();
       } else {
-        console.warn("❌ لم يتمكن من جلب الرصيد:", data.message);
+        console.warn("لم يتمكن من جلب رصيد الخادم:", data.message);
       }
     } catch (e) {
-      console.error("❌ خطأ أثناء جلب رصيد الخادم:", e);
+      console.error("خطأ أثناء جلب رصيد الخادم:", e);
     }
   }
-
-  fetchServerBalance(); // عند بدء التشغيل
-  setInterval(fetchServerBalance, 60000); // كل 60 ثانية
-
-  updateUI();
-  draw();
+  fetchServerBalance();
+  setInterval(fetchServerBalance, 60000);
 });
