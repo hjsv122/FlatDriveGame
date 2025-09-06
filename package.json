@@ -1,22 +1,16 @@
 {
-  "name": "flatdrive-trc20-game",
+  "name": "flatdrive-trc20",
   "version": "1.0.0",
-  "description": "FlatDrive — لعبة قيادة السيارة مع دعم سحب USDT TRC20",
+  "description": "لعبة FlatDrive مع دعم السحب عبر USDT TRC20",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
-  "keywords": [
-    "flatdrive",
-    "tronlink",
-    "usdt",
-    "trc20",
-    "crypto-game"
-  ],
-  "author": "Zaki",
-  "license": "MIT",
   "dependencies": {
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
     "express": "^4.18.2",
-    "tronweb": "^5.2.0"
+    "tronweb": "^5.3.0"
   }
 }
