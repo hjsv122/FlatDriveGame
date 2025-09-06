@@ -1,42 +1,51 @@
-let distance = 0;
-let earned = 0;
 let wallet = 0;
-let running = false;
+let serverWallet = 0;
+let distance = 0;
+let trxEarned = 0;
+let gameInterval;
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+let car = { x: 50, y: 250, width: 50, height: 30 };
 
-// تحديث الواجهة
 function updateUI() {
-  document.getElementById("distance").textContent = distance;
-  document.getElementById("earned").textContent = earned;
-  document.getElementById("wallet").textContent = wallet.toFixed(2);
-  document.getElementById("status").textContent = running ? "تعمل" : "متوقفة";
+  document.getElementById('wallet').textContent = wallet.toFixed(2);
+  document.getElementById('distance').textContent = distance;
+  document.getElementById('trxEarned').textContent = trxEarned.toFixed(4);
+  document.getElementById('status').textContent = gameInterval ? "تعمل" : "متوقفة";
 }
 
-// بدء القيادة
-document.getElementById("startBtn").onclick = () => {
-  if (!running) {
-    running = true;
-    gameLoop();
+function drawCar() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "red";
+  ctx.fillRect(car.x, car.y, car.width, car.height);
+}
+
+document.getElementById('startBtn').onclick = () => {
+  if (!gameInterval) {
+    gameInterval = setInterval(() => {
+      distance += 10;
+      trxEarned += 0.0001;
+      wallet = trxEarned;
+      car.x += 5;
+      if (car.x > canvas.width) car.x = 0;
+      drawCar();
+      updateUI();
+    }, 100);
   }
 };
 
-// التوقف
-document.getElementById("stopBtn").onclick = () => {
-  running = false;
+document.getElementById('stopBtn').onclick = () => {
+  clearInterval(gameInterval);
+  gameInterval = null;
+  updateUI();
 };
 
-// حلقة اللعبة
-function gameLoop() {
-  if (!running) return;
-
-  distance += 10;
-  earned += 0.01;
-  wallet += 0.01;
+document.getElementById('collectBtn').onclick = () => {
+  wallet += trxEarned;
+  trxEarned = 0;
   updateUI();
+};
 
-  setTimeout(gameLoop, 500);
-}
-
-// تنفيذ السحب
 document.getElementById('reqWithdraw').onclick = async () => {
   const to = document.getElementById('toAddress').value.trim();
   const amt = parseFloat(document.getElementById('amount').value);
@@ -67,3 +76,6 @@ document.getElementById('reqWithdraw').onclick = async () => {
     alert('❌ فشل السحب: خطأ في الاتصال بالخادم');
   }
 };
+
+updateUI();
+drawCar();
