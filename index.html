@@ -2,16 +2,15 @@
 <html lang="ar">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🚗 FlatDrive — النسخة النهائية TRC20</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FlatDrive — TRC20</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="container">
+  <div class="game-container">
     <h1>🚗 FlatDrive — النسخة النهائية TRC20</h1>
-
     <div class="stats">
-      <p>TRX المكتسب: <span id="earned">0</span></p>
+      <p>TRX المكتسب: <span id="trxEarned">0</span></p>
       <p>المسافة المقطوعة: <span id="distance">0</span> متر</p>
       <p>رصيد داخلي (USDT): <span id="wallet">0.00</span></p>
       <p>تمويل اللعبة (USDT): <span id="gameFund">0.00</span></p>
@@ -23,16 +22,17 @@
     <div class="controls">
       <button id="startBtn">ابدأ القيادة</button>
       <button id="stopBtn">توقف</button>
+      <button id="collectBtn">اجمع</button>
     </div>
 
-    <h2>سحب USDT TRC20</h2>
+    <canvas id="gameCanvas" width="600" height="300"></canvas>
+
     <div class="withdraw">
-      <input id="toAddress" type="text" placeholder="عنوان TRC20 يبدأ بـ T..." />
-      <input id="amount" type="number" placeholder="المبلغ USDT" />
+      <h3>سحب USDT TRC20</h3>
+      <input type="text" id="toAddress" placeholder="عنوان TRC20 يبدأ بـ T..." />
+      <input type="number" id="amount" placeholder="المبلغ USDT" />
       <button id="reqWithdraw">اطلب سحب</button>
     </div>
-
-    <div id="message"></div>
   </div>
 
   <script src="script.js"></script>
