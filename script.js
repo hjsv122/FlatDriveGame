@@ -1,8 +1,10 @@
+// script.js
+
 document.addEventListener("DOMContentLoaded", () => {
   const canvas = document.getElementById('gameCanvas');
   const ctx = canvas.getContext('2d');
-  const width = canvas.width = 720;
-  const height = canvas.height = 140;
+  canvas.width = 720;
+  canvas.height = 140;
 
   let running = false,
       trxEarned = 0,
@@ -11,8 +13,6 @@ document.addEventListener("DOMContentLoaded", () => {
       distance = 0,
       serverWallet = 0,
       serverWalletUSDT = 0;
-
-  let carX = 10, carColor = '#ff6b6b', speedLevel = 0, speed = 10;
 
   const updateUI = () => {
     document.getElementById('trxEarned').textContent = Math.floor(trxEarned);
@@ -24,34 +24,23 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const draw = () => {
-    ctx.clearRect(0, 0, width, height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = '#08323a';
-    ctx.fillRect(0, height - 20, width, 20);
-    ctx.fillStyle = carColor;
-    ctx.fillRect(carX, height - 44, 60, 28);
-    ctx.fillStyle = '#061119';
-    ctx.beginPath();
-    ctx.arc(carX + 12, height - 12, 8, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(carX + 48, height - 12, 8, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
+    ctx.fillStyle = '#ff6b6b';
+    ctx.fillRect(trxEarned % canvas.width, canvas.height - 44, 60, 28);
   };
 
   const gameTick = () => {
     if (!running) return;
-    carX = (carX + speed) % (width + 80) - 80;
-    distance += speed;
-    if (Math.random() < 0.7) trxEarned++;
+    trxEarned++;
+    distance += 10;
     updateUI();
     draw();
     requestAnimationFrame(gameTick);
   };
 
-  document.getElementById('carColor').onchange = e => carColor = e.target.value;
   document.getElementById('startBtn').onclick = () => {
-    speedLevel++;
-    speed = speedLevel >= 4 ? 60 : speedLevel === 3 ? 35 : speedLevel === 2 ? 20 : 10;
     running = true;
     document.getElementById('status').textContent = 'تعمل';
     gameTick();
@@ -70,7 +59,7 @@ document.addEventListener("DOMContentLoaded", () => {
     wallet += netUSDT;
     trxEarned = 0;
     updateUI();
-    alert(`تم تحويل ${netUSDT.toFixed(2)} USDT (خصم 3%).`);
+    alert(`تم تحويل ${netUSDT.toFixed(2)} USDT (بعد خصم 3%).`);
   };
 
   document.getElementById('convertFund').onclick = () => {
@@ -78,13 +67,13 @@ document.addEventListener("DOMContentLoaded", () => {
     wallet += gameFund;
     gameFund = 0;
     updateUI();
-    alert("تم تحويل تمويل اللعبة إلى محفظتك.");
+    alert("تم تحويل التمويل إلى محفظتك.");
   };
 
   document.getElementById('reqWithdraw').onclick = async () => {
     const to = document.getElementById('toAddress').value;
     const amt = parseFloat(document.getElementById('amount').value);
-    if (!to.startsWith("T") || !amt || wallet < amt) return alert("تحقق من العنوان أو الرصيد.");
+    if (!to.startsWith("T") || !amt || wallet < amt) return alert("تحقق من العنوان أو المبلغ.");
     try {
       const res = await fetch('/withdraw-usdt', {
         method: 'POST',
@@ -104,27 +93,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  document.getElementById('sendUSDTToServer').onclick = () => {
-    const amt = parseFloat(document.getElementById('usdtToServerAmount').value);
-    if (!amt || amt > wallet) return alert("مبلغ غير صالح أو أكبر من رصيدك.");
-    wallet -= amt;
-    serverWalletUSDT += amt;
-    updateUI();
-    alert(`تم تحويل ${amt.toFixed(2)} USDT إلى محفظة الخادم.`);
-  };
-
-  document.getElementById('withdrawFromServer').onclick = () => {
-    const amt = parseFloat(document.getElementById('serverToWalletAmount').value);
-    if (!amt || amt > serverWalletUSDT) return alert("رصيد غير كافٍ.");
-    serverWalletUSDT -= amt;
-    wallet += amt;
-    updateUI();
-    alert(`تم سحب ${amt.toFixed(2)} USDT من محفظة الخادم.`);
-  };
-
-  updateUI();
-  draw();
-
   async function fetchServerBalance() {
     try {
       const res = await fetch('/server-balance');
@@ -134,12 +102,14 @@ document.addEventListener("DOMContentLoaded", () => {
         serverWalletUSDT = parseFloat(data.usdtBalance);
         updateUI();
       } else {
-        console.warn("لم يتمكن من جلب رصيد الخادم:", data.message);
+        console.warn("Error fetching server balance:", data.message);
       }
     } catch (e) {
-      console.error("خطأ أثناء جلب رصيد الخادم:", e);
+      console.error("Fetch server balance error:", e);
     }
   }
+
   fetchServerBalance();
   setInterval(fetchServerBalance, 60000);
+  updateUI();
 });
