@@ -1,16 +1,15 @@
 {
-  "name": "flatdrive-trc20",
+  "name": "flatdrivegame",
   "version": "1.0.0",
-  "description": "لعبة FlatDrive مع دعم السحب عبر USDT TRC20",
+  "description": "FlatDrive TRC20 Game",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "body-parser": "^1.20.2",
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
     "express": "^4.18.2",
-    "tronweb": "^5.3.0"
+    "body-parser": "^1.20.2",
+    "tronweb": "^3.0.0",
+    "dotenv": "^16.3.1"
   }
 }
