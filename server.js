@@ -15,14 +15,37 @@ const tronWeb = new TronWeb({
   privateKey: process.env.PRIVATE_KEY
 });
 
-// عنوان عقد USDT على شبكة Shasta
+// طباعة العنوان للتأكيد
+(async () => {
+  const addr = tronWeb.address.fromPrivateKey(process.env.PRIVATE_KEY);
+  console.log(`🔐 محفظة الخادم: ${addr}`);
+})();
+
 const USDT_ADDRESS = 'TXLAQ63Xg1NAzckPwKHvzw7CSEmLMEqcdj';
 
-// ✅ API: تحويل USDT
+// API: رصيد المحفظة
+app.get('/server-balance', async (req, res) => {
+  try {
+    const address = tronWeb.address.fromPrivateKey(process.env.PRIVATE_KEY);
+    const trxBalanceSun = await tronWeb.trx.getBalance(address);
+    const trxBalance = tronWeb.fromSun(trxBalanceSun);
+
+    const contract = await tronWeb.contract().at(USDT_ADDRESS);
+    const usdtRaw = await contract.balanceOf(address).call();
+    const usdtBalance = usdtRaw / 1e6;
+
+    res.json({ success: true, trxBalance, usdtBalance });
+  } catch (err) {
+    res.json({ success: false, message: err.message });
+  }
+});
+
+// API: سحب USDT
 app.post('/withdraw-usdt', async (req, res) => {
   const { toAddress, amount } = req.body;
-  if (!toAddress || !amount || amount <= 0)
+  if (!toAddress || !amount || amount <= 0) {
     return res.json({ success: false, message: "بيانات غير صحيحة" });
+  }
   try {
     const contract = await tronWeb.contract().at(USDT_ADDRESS);
     const tx = await contract.transfer(toAddress, tronWeb.toSun(amount)).send();
@@ -32,35 +55,5 @@ app.post('/withdraw-usdt', async (req, res) => {
   }
 });
 
-// ✅ API: تحويل TRX
-app.post('/withdraw-trx', async (req, res) => {
-  const { toAddress, amount } = req.body;
-  if (!toAddress || !amount || amount <= 0)
-    return res.json({ success: false, message: "بيانات غير صحيحة" });
-  try {
-    const tx = await tronWeb.trx.sendTransaction(toAddress, tronWeb.toSun(amount));
-    res.json({ success: true, tx });
-  } catch (err) {
-    res.json({ success: false, message: err.message });
-  }
-});
-
-// ✅ API: عرض رصيد محفظة الخادم
-app.get('/server-balance', async (req, res) => {
-  try {
-    const address = tronWeb.address.fromPrivateKey(process.env.PRIVATE_KEY);
-    const trxBalanceSun = await tronWeb.trx.getBalance(address);
-    const trxBalance = tronWeb.fromSun(trxBalanceSun);
-
-    const contract = await tronWeb.contract().at(USDT_ADDRESS);
-    const usdtBalanceRaw = await contract.balanceOf(address).call();
-    const usdtBalance = usdtBalanceRaw / 1e6;
-
-    res.json({ success: true, trxBalance, usdtBalance, address });
-  } catch (error) {
-    res.json({ success: false, message: error.message });
-  }
-});
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => console.log(`🚀 Shasta server running on port ${PORT}`));
