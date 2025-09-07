@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// خدمة الملفات الثابتة (صفحات الواجهة: HTML, CSS, JS)
+// خدمة الملفات الثابتة من مجلد 'public'
 app.use(express.static(path.join(__dirname, 'public')));
 
 // إعداد TronWeb
@@ -19,7 +19,7 @@ const tronWeb = new TronWeb({
   privateKey: process.env.PRIVATE_KEY || ''
 });
 
-// مثال: API لجلب رصيد TRX لمحفظة
+// API لجلب رصيد TRX لمحفظة
 app.get('/api/balance/:address', async (req, res) => {
   try {
     const address = req.params.address;
@@ -29,8 +29,6 @@ app.get('/api/balance/:address', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
-// هنا يمكنك إضافة المزيد من endpoints للسحب والتحويل حسب احتياجك
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
