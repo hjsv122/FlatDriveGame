@@ -39,11 +39,7 @@ canvas {
   margin: 12px 0;
 }
 
-.controls,
-.fund-panel,
-.withdraw-panel,
-.usdt-server-panel,
-.server-to-wallet-panel {
+.controls {
   margin-bottom: 16px;
 }
 
@@ -54,16 +50,14 @@ button {
   padding: 8px 12px;
   border-radius: 8px;
   cursor: pointer;
-  margin: 4px 0;
+  margin: 4px 8px 4px 0;
 }
 
-input,
 select {
-  width: 100%;
   padding: 8px;
   border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
   background: #02121a;
   color: white;
   margin-top: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
