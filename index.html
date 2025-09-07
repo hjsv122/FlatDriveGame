@@ -1,38 +1,36 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FlatDrive - النسخة النهائية</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <div class="game-container">
-      <h1>FlatDrive — النسخة النهائية MATIC</h1>
-      <div class="info">
-        <div>MATIC المكتسب: <strong id="maticEarned">0</strong></div>
-        <div>USDT المحول: <strong id="usdtConverted">0.00</strong></div>
-        <div>المسافة المقطوعة: <span id="distance">0</span> متر</div>
-        <div>رصيد داخلي: <span id="wallet">0.00</span> MATIC</div>
-        <div>المحفظة: <span id="status">غير متصلة</span></div>
-      </div>
-
-      <canvas id="gameCanvas"></canvas>
-
-      <div class="controls">
-        <select id="carColor">
-          <option value="#ff6b6b">أحمر</option>
-          <option value="#4ade80">أخضر</option>
-          <option value="#3b82f6">أزرق</option>
-          <option value="#facc15">أصفر</option>
-        </select>
-        <button id="startBtn">ابدأ القيادة</button>
-        <button id="stopBtn">توقف</button>
-        <button id="withdrawMaticBtn">سحب MATIC</button>
-        <button id="convertToUsdtBtn">تحويل إلى USDT</button>
-        <button id="withdrawUsdtBtn">سحب USDT</button>
-      </div>
-    </div>
-    <script type="module" src="script.js"></script>
-  </body>
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FlatDrive - النسخة النهائية</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div class="game-container">
+  <h1>FlatDrive — النسخة النهائية MATIC</h1>
+  <div class="info">
+    <div>MATIC المكتسب: <strong id="maticEarned">0</strong></div>
+    <div>USDT المحول: <strong id="usdtConverted">0.00</strong></div>
+    <div>المسافة المقطوعة: <span id="distance">0</span> متر</div>
+    <div>رصيد داخلي: <span id="wallet">0.00</span> MATIC</div>
+    <div>المحفظة: <span id="status">غير متصلة</span></div>
+  </div>
+  <canvas id="gameCanvas"></canvas>
+  <div class="controls">
+    <select id="carColor">
+      <option value="#ff6b6b">أحمر</option>
+      <option value="#4ade80">أخضر</option>
+      <option value="#3b82f6">أزرق</option>
+      <option value="#facc15">أصفر</option>
+    </select>
+    <button id="startBtn">ابدأ القيادة</button>
+    <button id="stopBtn">توقف</button>
+    <button id="withdrawMaticBtn">سحب MATIC</button>
+    <button id="convertToUsdtBtn">تحويل إلى USDT</button>
+    <button id="withdrawUsdtBtn">سحب USDT</button>
+  </div>
+</div>
+<script src="script.js"></script>
+</body>
 </html>
