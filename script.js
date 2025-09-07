@@ -17,8 +17,6 @@ document.addEventListener("DOMContentLoaded", () => {
   let speedLevel = 0;
   let speed = 10;
 
-  const API_BASE = 'https://your-render-url.onrender.com'; // ← غيّرها لاحقًا إلى رابط الخادم
-
   const updateUI = () => {
     document.getElementById('trxEarned').textContent = Math.floor(trxEarned);
     document.getElementById('wallet').textContent = wallet.toFixed(2);
@@ -27,22 +25,6 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('serverWallet').textContent = serverWallet.toFixed(2);
     document.getElementById('serverWalletUSDT').textContent = serverWalletUSDT.toFixed(2);
   };
-
-  async function fetchServerBalances() {
-    try {
-      const trxRes = await fetch(`${API_BASE}/balance/trx`);
-      const usdtRes = await fetch(`${API_BASE}/balance/usdt`);
-
-      const trxData = await trxRes.json();
-      const usdtData = await usdtRes.json();
-
-      serverWallet = trxData.balance;
-      serverWalletUSDT = usdtData.balance;
-      updateUI();
-    } catch (err) {
-      console.error('فشل في جلب الرصيد الحقيقي:', err);
-    }
-  }
 
   const draw = () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -82,4 +64,37 @@ document.addEventListener("DOMContentLoaded", () => {
     else if (speedLevel >= 4) speed = 60;
 
     running = true;
-    document.getElementById('status').
+    document.getElementById('status').textContent = 'تعمل';
+    gameTick();
+  };
+
+  document.getElementById('stopBtn').onclick = () => {
+    running = false;
+    document.getElementById('status').textContent = 'متوقفة';
+  };
+
+  document.getElementById('collectBtn').onclick = () => {
+    if (trxEarned < 1) {
+      alert("لا توجد أرباح لجمعها.");
+      return;
+    }
+
+    const rate = 1;
+    const totalUSDT = trxEarned * rate;
+    const fee = totalUSDT * 0.03;
+    const netUSDT = totalUSDT - fee;
+
+    gameFund += fee;
+    wallet += netUSDT;
+    trxEarned = 0;
+    updateUI();
+    alert(`تم تحويل ${netUSDT.toFixed(2)} USDT إلى محفظتك الداخلية (خصم 3% تمويل).`);
+  };
+
+  document.getElementById('convertFund').onclick = () => {
+    if (gameFund <= 0) {
+      alert("لا يوجد رصيد في محفظة التمويل.");
+      return;
+    }
+    wallet += gameFund;
+    gameFund = 0;
