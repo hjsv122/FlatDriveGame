@@ -1,15 +1,24 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>FlatDrive - لعبة حقيقية مع سحب USDC</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>FlatDrive مع سحب فعلي</title>
+  <style>
+    /* CSS كما قبل */
+    body { font-family: Arial, sans-serif; background: #0f172a; color: #e6eef8; padding: 20px; display: flex; justify-content: center; }
+    .game-container { width: 760px; background: #0b1220; padding: 18px; border-radius: 10px; box-shadow: 0 6px 24px rgba(2,6,23,0.6); }
+    h1 { font-size: 20px; margin-bottom: 10px; }
+    .info { display: flex; flex-wrap: wrap; justify-content: space-between; background: #071026; padding: 10px; border-radius: 8px; margin-bottom: 10px; }
+    canvas { width:100%; height:140px; background:#02111b; border-radius:8px; display:block; margin:12px 0; }
+    .controls { margin-bottom:16px; }
+    button { background:#0ea5a6; color:#041014; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; margin:4px 8px 4px 0; }
+    select { width:100%; padding:8px; border-radius:6px; border:1px solid rgba(255,255,255,0.06); background:#02121a; color:white; margin-top:6px; }
+  </style>
 </head>
 <body>
   <div class="game-container">
-    <h1>🚗 FlatDrive — النسخة النهائية مع محفظة حقيقية</h1>
-
+    <h1>🚗 FlatDrive — النسخة الفعلية مع السحب</h1>
     <div class="info">
       <div>USDC المكتسب: <strong id="trxEarned">0</strong></div>
       <div>المسافة المقطوعة: <span id="distance">0</span> متر</div>
@@ -17,9 +26,7 @@
       <div>تمويل اللعبة (USDC): <span id="gameFund">0.00</span></div>
       <div>الحالة: <span id="status">متوقفة</span></div>
     </div>
-
     <canvas id="gameCanvas"></canvas>
-
     <div class="controls">
       <select id="carColor">
         <option value="#ff6b6b">أحمر</option>
@@ -27,15 +34,152 @@
         <option value="#3b82f6">أزرق</option>
         <option value="#facc15">أصفر</option>
       </select>
-
       <button id="startBtn">ابدأ القيادة</button>
       <button id="stopBtn">توقف</button>
-      <button id="collectBtn">اجمع (تحويل إلى محفظتك)</button>
+      <button id="collectBtn">اجمع (تحويل فعلي)</button>
       <button id="convertFund">تحويل تمويل اللعبة</button>
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@zerodevapp/sdk"></script>
-  <script src="app.js"></script>
+  <!-- تحميل المكتبات -->
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@zerodev/sdk@latest/dist/zerodev-sdk.min.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      const canvas = document.getElementById("gameCanvas");
+      const ctx = canvas.getContext("2d");
+      canvas.width = 720;
+      canvas.height = 140;
+
+      let running = false;
+      let trxEarned = 0;
+      let wallet = 0;
+      let gameFund = 0;
+      let distance = 0;
+
+      let carX = 10;
+      let carColor = "#ff6b6b";
+      let speedLevel = 0;
+      let speed = 10;
+
+      const projectId = "29f50eca-d2a1-47ed-b388-a3bcf044a8a5"; // مفتاح مشروعك
+      const recipientAddress = "0xcaBb5186Ee6CcB0F8C8ac3Ae85f4C94308cA106A";
+
+      // تهيئة SDK
+      let walletSDK;
+      try {
+        walletSDK = await Zerodev.init({ projectId });
+      } catch (err) {
+        console.error("خطأ في تهيئة Zerodev:", err);
+        alert("خطأ تقني: لم يتم الاتصال بالمحفظة الذكية. حاول مرة أخرى.");
+        return;
+      }
+
+      function updateUI() {
+        document.getElementById("trxEarned").textContent = trxEarned.toFixed(2);
+        document.getElementById("wallet").textContent = wallet.toFixed(2);
+        document.getElementById("gameFund").textContent = gameFund.toFixed(2);
+        document.getElementById("distance").textContent = distance;
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#08323a";
+        ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
+
+        ctx.fillStyle = carColor;
+        ctx.fillRect(carX, canvas.height - 44, 60, 28);
+
+        ctx.fillStyle = "#061119";
+        ctx.beginPath();
+        ctx.arc(carX + 12, canvas.height - 12, 8, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(carX + 48, canvas.height - 12, 8, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      function gameTick() {
+        if (!running) return;
+        carX += speed;
+        if (carX > canvas.width) carX = -80;
+        distance += speed;
+        if (Math.random() < 0.9) {
+          trxEarned += Math.floor(Math.random() * 5) + 1;
+        }
+        updateUI();
+        draw();
+        requestAnimationFrame(gameTick);
+      }
+
+      document.getElementById("carColor").onchange = e => {
+        carColor = e.target.value;
+      };
+
+      document.getElementById("startBtn").onclick = () => {
+        speedLevel++;
+        if (speedLevel === 1) speed = 10;
+        else if (speedLevel === 2) speed = 20;
+        else if (speedLevel === 3) speed = 35;
+        else speed = 60;
+        running = true;
+        document.getElementById("status").textContent = "تعمل";
+        gameTick();
+      };
+
+      document.getElementById("stopBtn").onclick = () => {
+        running = false;
+        document.getElementById("status").textContent = "متوقفة";
+      };
+
+      document.getElementById("collectBtn").onclick = async () => {
+        if (trxEarned < 1) {
+          alert("لا توجد أرباح كافية للسحب.");
+          return;
+        }
+
+        const fundFee = trxEarned * 0.05;
+        const netEarned = trxEarned - fundFee;
+
+        // تنفيذ المعاملة الفعلية باستخدام SDK
+        try {
+          document.getElementById("status").textContent = "جاري التحويل...";
+          const tx = await walletSDK.sendERC20({
+            token: "USDC",
+            to: recipientAddress,
+            amount: netEarned.toString(),
+          });
+
+          // إذا نجحت المعاملة:
+          gameFund += fundFee;
+          wallet += netEarned;
+          trxEarned = 0;
+          updateUI();
+          alert(`✅ تم إرسال ${netEarned.toFixed(2)} USDC إلى محفظتك.`);
+          document.getElementById("status").textContent = "تم التحويل";
+        } catch (error) {
+          console.error("خطأ في السحب:", error);
+          alert("حدث خطأ في السحب الفعلي.");
+          document.getElementById("status").textContent = "متوقفة";
+        }
+      };
+
+      document.getElementById("convertFund").onclick = () => {
+        if (gameFund <= 0) {
+          alert("لا يوجد رصيد تمويل.");
+          return;
+        }
+        wallet += gameFund;
+        gameFund = 0;
+        updateUI();
+        alert("✅ تم تحويل تمويل اللعبة.");
+      };
+
+      updateUI();
+      draw();
+    });
+  </script>
 </body>
 </html>
