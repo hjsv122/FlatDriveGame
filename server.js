@@ -4,11 +4,13 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const axios = require('axios');
 const app = express();
+
+// استخدام المنفذ الذي يوفره Render
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(bodyParser.json());
-app.use(express.static('public'));
+app.use(express.static('public')); // مجلد public للواجهة
 
 // إنشاء فاتورة على NOWPayments
 app.post('/create-invoice', async (req, res) => {
@@ -44,4 +46,5 @@ app.post('/create-invoice', async (req, res) => {
   }
 });
 
+// بدء السيرفر
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
