@@ -3,48 +3,58 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const axios = require('axios');
-const app = express();
 
-// استخدام المنفذ الذي يوفره Render
+const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(bodyParser.json());
-app.use(express.static('public')); // مجلد public للواجهة
+app.use(express.static('public'));
 
-// إنشاء فاتورة على NOWPayments
+// إنشاء فاتورة من Plisio
 app.post('/create-invoice', async (req, res) => {
   const { amountUSD } = req.body;
 
-  if (!process.env.NOW_API_KEY || !process.env.PAYOUT_WALLET) {
-    return res.status(500).json({ error: "NOWPayments API key or payout wallet not configured" });
+  if (!process.env.PLISIO_API_KEY) {
+    return res.status(500).json({ error: "Plisio API key not configured" });
   }
 
   try {
     const response = await axios.post(
-      'https://api.nowpayments.io/v1/payment',
+      'https://plisio.net/api/v1/invoices/new',
       {
-        price_amount: Number(amountUSD),
-        price_currency: 'usd',
-        pay_currency: 'usdttrc20',
-        order_id: `flatdrive_${Date.now()}`,
-        order_description: 'سحب أرباح FlatDrive',
-        payout_address: process.env.PAYOUT_WALLET
+        amount: amountUSD.toFixed(2),
+        currency: 'USDT_TRX', // هذا هو Tether TRC-20
+        order_name: 'FlatDrive Earnings',
+        order_number: `flatdrive_${Date.now()}`,
+        callback_url: '', // يمكن تركها فارغة الآن
+        success_url: '',
+        failed_url: ''
       },
       {
         headers: {
-          'x-api-key': process.env.NOW_API_KEY,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.PLISIO_API_KEY}`
         }
       }
     );
 
-    res.json(response.data);
-  } catch (err) {
-    console.error("NOWPayments error:", err.response?.data || err.message);
-    res.status(500).json({ error: "Failed to create invoice", details: err.response?.data || err.message });
+    const invoice = response.data?.data;
+
+    if (invoice?.invoice_url) {
+      res.json({ invoice_url: invoice.invoice_url });
+    } else {
+      res.status(500).json({ error: 'Failed to generate invoice', details: invoice });
+    }
+
+  } catch (error) {
+    console.error("Plisio error:", error.response?.data || error.message);
+    res.status(500).json({
+      error: "Failed to create Plisio invoice",
+      details: error.response?.data || error.message
+    });
   }
 });
 
-// بدء السيرفر
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// بدء تشغيل السيرفر
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
