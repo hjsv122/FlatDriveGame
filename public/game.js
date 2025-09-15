@@ -1,7 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
   const canvas = document.getElementById('gameCanvas');
   const ctx = canvas.getContext('2d');
-  canvas.width = 720; canvas.height = 140;
+  canvas.width = 720;
+  canvas.height = 140;
 
   let running = false,
       trxEarned = 0,
@@ -52,6 +53,7 @@ document.addEventListener("DOMContentLoaded", () => {
     else if (speedLevel === 2) speed = 20;
     else if (speedLevel === 3) speed = 35;
     else speed = 60;
+
     running = true;
     document.getElementById('status').textContent = 'تعمل';
     gameTick();
@@ -62,19 +64,36 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('status').textContent = 'متوقفة';
   };
 
-  // ✅ الزر المعدل - تحويل يدوي
-  document.getElementById('collectBtn').onclick = () => {
+  // ✅ تحديث زر "اجمع" ليستخدم Plisio API
+  document.getElementById('collectBtn').onclick = async () => {
     if (trxEarned < 1) {
       alert("لا توجد أرباح لجمعها.");
       return;
     }
 
-    const amount = Math.floor(trxEarned);
+    const amountUSD = trxEarned;
     trxEarned = 0;
     updateUI();
 
-    // عرض رسالة التحويل اليدوي
-    alert(`✅ تم جمع ${amount} USDT.\n\nيرجى تحويل المبلغ يدويًا إلى محفظتك:\n\n📥 Trust Wallet:\nTKmjAd6z7pAZpv2tQfie1Zt7ihX1XhZBTS\n\n📌 ملاحظة: هذا التحويل يدوي، احتفظ بالسجل بنفسك.`);
+    try {
+      const resp = await fetch('/create-invoice', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amountUSD })
+      });
+
+      const data = await resp.json();
+
+      if (data.invoice_url) {
+        window.open(data.invoice_url, '_blank');
+        alert("✅ تم إنشاء فاتورة دفع عبر Plisio.");
+      } else {
+        alert("❌ لم يتم إنشاء الفاتورة. تحقق من الخادم.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("❌ حدث خطأ أثناء الاتصال بـ Plisio.");
+    }
   };
 
   updateUI();
