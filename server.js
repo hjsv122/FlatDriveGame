@@ -1,52 +1,51 @@
-require('dotenv').config();
+// server.js
 const express = require('express');
-const cors = require('cors');
-const bodyParser = require('body-parser');
 const axios = require('axios');
+const path = require('path');
+require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
-app.use(bodyParser.json());
-app.use(express.static('public'));
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public'))); // مجلد اللعبة (index.html و game.js)
 
-app.post('/create-nowpayment-invoice', async (req, res) => {
-  const { amountUSD, orderId } = req.body;
+app.post('/create-invoice', async (req, res) => {
+  const { amountUSD, payoutAddress } = req.body;
 
-  if (!amountUSD || isNaN(amountUSD)) {
-    return res.status(400).json({ error: "Invalid amount" });
+  if (!amountUSD || isNaN(amountUSD) || amountUSD <= 0) {
+    return res.status(400).json({ error: "amountUSD غير صالح" });
+  }
+  if (!payoutAddress) {
+    return res.status(400).json({ error: "payoutAddress مطلوب" });
   }
 
   try {
     const response = await axios.post(
       'https://api.nowpayments.io/v1/invoice',
       {
-        price_amount: parseFloat(amountUSD).toFixed(2),
-        price_currency: 'usd',
-        pay_currency: 'usdttrc20', // Or use process.env.CURRENCY
-        order_id: orderId,
+        price_amount: amountUSD,
+        price_currency: 'USDT',
+        pay_currency: 'BTC',
+        payout_address: payoutAddress,
+        order_id: `flatdrive_${Date.now()}`,
         order_description: 'FlatDrive Game Earnings',
-        ipn_callback_url: 'https://yourdomain.com/ipn-handler'
       },
       {
         headers: {
           'x-api-key': process.env.NOWPAYMENTS_API_KEY,
-          'Content-Type': 'application/json'
-        }
+          'Content-Type': 'application/json',
+        },
       }
     );
 
-    if (response.data && response.data.invoice_url) {
-      return res.json({ invoice_url: response.data.invoice_url });
-    } else {
-      console.error("Invoice creation failed", response.data);
-      return res.status(500).json({ error: "Failed to create invoice", details: response.data });
-    }
-  } catch (err) {
-    console.error("NowPayments error:", err.response?.data || err.message);
-    return res.status(500).json({ error: "Server error", details: err.response?.data || err.message });
+    res.json(response.data);
+  } catch (error) {
+    console.error('Failed to create invoice:', error.response?.data || error.message);
+    res.status(500).json({ error: 'فشل في إنشاء الفاتورة' });
   }
 });
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
