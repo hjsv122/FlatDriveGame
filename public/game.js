@@ -64,14 +64,14 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('status').textContent = 'متوقفة';
   };
 
-  // ✅ تحديث زر "اجمع" ليستخدم Plisio API
   document.getElementById('collectBtn').onclick = async () => {
     if (trxEarned < 1) {
       alert("لا توجد أرباح لجمعها.");
       return;
     }
 
-    const amountUSD = trxEarned;
+    // نحول trxEarned لعدد عشري بمقدار مناسب (مثلاً 2 خانات عشرية)
+    const amountUSD = parseFloat(trxEarned.toFixed(2));
     trxEarned = 0;
     updateUI();
 
