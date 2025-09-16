@@ -1,72 +1,90 @@
-const car = document.getElementById('car');
-const earningsDisplay = document.getElementById('earnings');
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+let carX = 0;
+let speed = 0;
+let speedLevel = 0;
+let running = false;
+let earnings = 0;
+
+const startBtn = document.getElementById('startBtn');
 const collectBtn = document.getElementById('collectBtn');
+const statusText = document.getElementById('status');
+const messageDiv = document.getElementById('message');
 
-let trxEarned = 0;
-let carPosition = 0;
-const carSpeed = 5; // كما طلبت لا نغيرها
+function drawCar() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-function updateEarningsDisplay() {
-  earningsDisplay.textContent = `الأرباح: ${trxEarned.toFixed(4)} USDT`;
+  // جسم السيارة (مربع أحمر)
+  ctx.fillStyle = 'red';
+  ctx.fillRect(carX, 100, 50, 30);
+
+  // العجلات (دوائر سوداء)
+  ctx.fillStyle = 'black';
+  ctx.beginPath();
+  ctx.arc(carX + 10, 135, 8, 0, Math.PI * 2);
+  ctx.arc(carX + 40, 135, 8, 0, Math.PI * 2);
+  ctx.fill();
 }
 
-function simulateEarnings() {
-  // كل ثانية نزيد الأرباح بشكل عشوائي (كمثال)
-  trxEarned += 0.001 + Math.random() * 0.004;
-  updateEarningsDisplay();
-}
+function gameTick() {
+  if (!running) return;
 
-// تحريك السيارة يمين ويسار (كمثال مبسط فقط)
-window.addEventListener('keydown', e => {
-  if (e.key === 'ArrowRight') {
-    carPosition += carSpeed;
-    if (carPosition > 540) carPosition = 540; // حدود اللعبة
-    car.style.left = carPosition + 'px';
-  } else if (e.key === 'ArrowLeft') {
-    carPosition -= carSpeed;
-    if (carPosition < 0) carPosition = 0;
-    car.style.left = carPosition + 'px';
+  carX += speed;
+  if (carX > canvas.width) {
+    carX = 0;
+    earnings += 0.5; // أرباح صغيرة مع كل دورة كاملة
+    collectBtn.disabled = false;
+    messageDiv.textContent = `أرباحك الحالية: ${earnings.toFixed(2)} USDT`;
   }
-});
+
+  drawCar();
+  requestAnimationFrame(gameTick);
+}
+
+startBtn.onclick = () => {
+  speedLevel++;
+  if (speedLevel === 1) speed = 10;
+  else if (speedLevel === 2) speed = 20;
+  else if (speedLevel === 3) speed = 35;
+  else speed = 60;
+
+  running = true;
+  statusText.textContent = 'تعمل';
+  gameTick();
+};
 
 collectBtn.onclick = async () => {
-  if (trxEarned < 0.001) {
-    alert("لا توجد أرباح كافية لجمعها.");
+  if (earnings < 1) {
+    alert('يجب أن يكون لديك رصيد 1 USDT على الأقل للسحب.');
     return;
   }
-
-  const payoutAddress = prompt("ادخل عنوان محفظة BTC لاستلام الأرباح:");
-
-  if (!payoutAddress) {
-    alert("يرجى إدخال عنوان المحفظة.");
-    return;
-  }
+  
+  collectBtn.disabled = true;
+  messageDiv.textContent = 'جاري إنشاء الفاتورة...';
 
   try {
     const response = await fetch('/create-invoice', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        amountUSD: trxEarned,
-        payoutAddress: payoutAddress
-      }),
+      body: JSON.stringify({ amount: earnings.toFixed(6), currency: 'usdt' })
     });
-
     const data = await response.json();
 
     if (data.invoice_url) {
-      window.open(data.invoice_url, '_blank');
-      alert("تم إنشاء فاتورة الدفع. الرجاء إتمام الدفع.");
-      trxEarned = 0;
-      updateEarningsDisplay();
+      messageDiv.innerHTML = `تم إنشاء الفاتورة: <a href="${data.invoice_url}" target="_blank">ادفع هنا</a>`;
+      earnings = 0;
+      collectBtn.disabled = true;
+      statusText.textContent = 'متوقف';
+      running = false;
+      carX = 0;
+      drawCar();
     } else {
-      alert("حدث خطأ في إنشاء الفاتورة.");
+      messageDiv.textContent = 'فشل إنشاء الفاتورة، حاول مرة أخرى.';
+      collectBtn.disabled = false;
     }
-  } catch (error) {
-    alert("فشل في الاتصال بالخادم.");
-    console.error(error);
+  } catch (err) {
+    messageDiv.textContent = 'خطأ في الاتصال بالخادم.';
+    collectBtn.disabled = false;
   }
 };
-
-// محاكاة الأرباح كل ثانية
-setInterval(simulateEarnings, 1000);
