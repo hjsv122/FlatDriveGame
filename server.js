@@ -32,12 +32,10 @@ app.post('/create-invoice', async (req, res) => {
       api_key: process.env.PLISIO_API_KEY,
       source_currency: 'USD',
       source_amount: amountUSD.toFixed(2),
-      currency: 'USDT_TRX',
+      currency: 'USDT_BSC', // ✅ العملة المختارة: Tether BEP-20
       order_number: orderNumber,
       order_name: orderName,
-
-      // 🔥 السطر المهم لخصم العمولة من الموقع
-      commission_payer: 'site'
+      commission_payer: 'site' // ✅ Plisio تخصم الرسوم من المبلغ نفسه
     });
 
     const url = `https://api.plisio.net/api/v1/invoices/new?${params.toString()}`;
