@@ -31,10 +31,13 @@ app.post('/create-invoice', async (req, res) => {
     const params = new URLSearchParams({
       api_key: process.env.PLISIO_API_KEY,
       source_currency: 'USD',
-      source_amount: amountUSD.toFixed(2), // 🔹 لا نخصم أي شيء هنا، لأن Plisio ستخصم من الداخل
+      source_amount: amountUSD.toFixed(2),
       currency: 'USDT_TRX',
       order_number: orderNumber,
       order_name: orderName,
+
+      // 🔥 السطر المهم لخصم العمولة من الموقع
+      commission_payer: 'site'
     });
 
     const url = `https://api.plisio.net/api/v1/invoices/new?${params.toString()}`;
