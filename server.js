@@ -19,33 +19,30 @@ app.post('/create-invoice', async (req, res) => {
     return res.status(500).json({ error: "Plisio API key not configured" });
   }
 
-  if (!amountUSD || isNaN(amountUSD)) {
-    console.error("Error: amountUSD is missing or not a number:", amountUSD);
+  if (!amountUSD || isNaN(amountUSD) || amountUSD <= 0) {
+    console.error("Error: amountUSD is missing, not a number, or <= 0:", amountUSD);
     return res.status(400).json({ error: "amountUSD is invalid or missing" });
   }
 
-  const orderNumber = `flatdrive_${Date.now()}`; // ضمان أنه فريد
+  const orderNumber = `flatdrive_${Date.now()}`;
   const orderName = 'FlatDrive Earnings';
 
   try {
-    // طبق التوثيق — قد يكون GET هو المطلوب، لكن سنبقي على POST إن كان Plisio يدعم
-    const response = await axios.post(
-      'https://api.plisio.net/api/v1/invoices/new',
-      {
-        amount: amountUSD.toFixed(2),
-        currency: 'USDT_TRX',
-        order_name: orderName,
-        order_number: orderNumber,
-        // يمكنك إضافة callback_url إن أردت
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.PLISIO_API_KEY}`
-        },
-        timeout: 10000
-      }
-    );
+    // ملاحظة: طلب GET مع params وليس POST مع body
+    const params = new URLSearchParams({
+      api_key: process.env.PLISIO_API_KEY,
+      source_currency: 'USD',
+      source_amount: amountUSD.toFixed(2),
+      currency: 'USDT_TRX',  // تأكد من أن هذه العملة مدعومة في حسابك
+      order_number: orderNumber,
+      order_name: orderName,
+      // يمكنك إضافة callback_url هنا إذا أردت
+      // callback_url: 'https://yourdomain.com/callback'
+    });
+
+    const url = `https://api.plisio.net/api/v1/invoices/new?${params.toString()}`;
+
+    const response = await axios.get(url, { timeout: 10000 });
 
     console.log("Plisio response data:", response.data);
 
