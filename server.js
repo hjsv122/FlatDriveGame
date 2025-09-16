@@ -24,12 +24,6 @@ app.post('/create-invoice', async (req, res) => {
     return res.status(400).json({ error: "amountUSD is invalid or missing" });
   }
 
-  // ✳️ النسبة المئوية لرسوم Plisio (افتراضيًا 0.5%)
-  const feeRate = parseFloat(process.env.PLISIO_FEE_RATE || '0.005');
-
-  // ✅ خصم الرسوم من المبلغ قبل إرسال الفاتورة
-  const netAmount = amountUSD / (1 + feeRate);
-
   const orderNumber = `flatdrive_${Date.now()}`;
   const orderName = 'FlatDrive Earnings';
 
@@ -37,11 +31,10 @@ app.post('/create-invoice', async (req, res) => {
     const params = new URLSearchParams({
       api_key: process.env.PLISIO_API_KEY,
       source_currency: 'USD',
-      source_amount: netAmount.toFixed(2),
+      source_amount: amountUSD.toFixed(2), // 🔹 لا نخصم أي شيء هنا، لأن Plisio ستخصم من الداخل
       currency: 'USDT_TRX',
       order_number: orderNumber,
       order_name: orderName,
-      // يمكن إضافة callback_url هنا إذا لزم
     });
 
     const url = `https://api.plisio.net/api/v1/invoices/new?${params.toString()}`;
