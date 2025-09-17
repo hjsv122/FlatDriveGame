@@ -1,7 +1,7 @@
 {
-  "name": "flatdrive-game",
+  "name": "flatdrivegame",
   "version": "1.0.0",
-  "description": "FlatDrive game with NOWPayments integration",
+  "description": "FlatDrive-4 game backend",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
@@ -11,9 +11,8 @@
     "node-fetch": "^2.6.1"
   },
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=22.16.0"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+  "author": "hjsv122",
+  "license": "MIT"
 }
