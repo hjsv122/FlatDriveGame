@@ -21,6 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let walletAddress = '';
 
+  // تحميل عنوان المحفظة من السيرفر
   fetch('/wallet-address')
     .then(res => res.json())
     .then(data => {
@@ -29,6 +30,9 @@ document.addEventListener("DOMContentLoaded", () => {
       privateKeyElem.textContent = '(مخفي)';
       walletBalanceElem.textContent = '--';
       updateBalance();
+    })
+    .catch(err => {
+      console.error("Error fetching wallet address:", err);
     });
 
   function updateBalance() {
@@ -36,6 +40,10 @@ document.addEventListener("DOMContentLoaded", () => {
       .then(res => res.json())
       .then(data => {
         walletBalanceElem.textContent = data.balance || '0.0000';
+      })
+      .catch(err => {
+        console.error("Error fetching balance:", err);
+        walletBalanceElem.textContent = '0.0000';
       });
   }
 
@@ -48,12 +56,15 @@ document.addEventListener("DOMContentLoaded", () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = '#08323a';
     ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
+
     ctx.fillStyle = carColor;
     ctx.fillRect(carX, canvas.height - 44, 60, 28);
+
     ctx.fillStyle = '#061119';
     ctx.beginPath();
     ctx.arc(carX + 12, canvas.height - 12, 8, 0, Math.PI * 2);
     ctx.fill();
+
     ctx.beginPath();
     ctx.arc(carX + 48, canvas.height - 12, 8, 0, Math.PI * 2);
     ctx.fill();
@@ -116,10 +127,5 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (err) {
       alert('❌ خطأ في الاتصال بالخادم.');
     }
-  };
-
-  // إلغاء زر الإرسال الخارجي
-  document.getElementById('sendBtn').onclick = () => {
-    alert("🚫 الإرسال اليدوي غير مفعل في هذه النسخة.");
   };
 });
