@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const statusElem = document.getElementById('status');
 
   let walletAddress = '';
-  
+
   fetch('/wallet-address')
     .then(res => res.json())
     .then(data => {
@@ -48,15 +48,12 @@ document.addEventListener("DOMContentLoaded", () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = '#08323a';
     ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
-
     ctx.fillStyle = carColor;
     ctx.fillRect(carX, canvas.height - 44, 60, 28);
-
     ctx.fillStyle = '#061119';
     ctx.beginPath();
     ctx.arc(carX + 12, canvas.height - 12, 8, 0, Math.PI * 2);
     ctx.fill();
-
     ctx.beginPath();
     ctx.arc(carX + 48, canvas.height - 12, 8, 0, Math.PI * 2);
     ctx.fill();
@@ -111,7 +108,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       const result = await response.json();
       if (result.success) {
-        alert(`✅ تم إرسال ${amountToSend} USDT إلى محفظتك الحقيقية.`);
+        alert(`✅ تم إرسال ${amountToSend} USDT إلى المحفظة الحقيقية.`);
         updateBalance();
       } else {
         alert('❌ فشل إرسال الأرباح: ' + result.error);
@@ -121,28 +118,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  document.getElementById('sendBtn').onclick = async () => {
-    const recipient = document.getElementById('recipient').value.trim();
-    const amount = parseFloat(document.getElementById('amount').value);
-    if (!recipient || !amount || amount <= 0) {
-      alert('يرجى إدخال عنوان المحفظة والكمية بشكل صحيح.');
-      return;
-    }
-    try {
-      const response = await fetch('/send-usdt', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ recipient, amount })
-      });
-      const result = await response.json();
-      if (result.success) {
-        alert(`✅ تم إرسال ${amount} USDT إلى ${recipient}`);
-        updateBalance();
-      } else {
-        alert('❌ فشل الإرسال: ' + result.error);
-      }
-    } catch (err) {
-      alert('❌ خطأ في الاتصال بالخادم.');
-    }
+  // إلغاء زر الإرسال الخارجي
+  document.getElementById('sendBtn').onclick = () => {
+    alert("🚫 الإرسال اليدوي غير مفعل في هذه النسخة.");
   };
 });
