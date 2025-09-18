@@ -1,94 +1,81 @@
-import express from "express";
-import bodyParser from "body-parser";
-import dotenv from "dotenv";
-import cors from "cors";
-import crypto from "crypto";
-import path from "path";
-import { fileURLToPath } from "url";
-
-// ✅ الطريقة الصحيحة لاستيراد fetch مع ESM و node-fetch v3+
-const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
-
-dotenv.config();
+require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+const { ethers } = require('ethers');
+const path = require('path');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-
 app.use(cors());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json());
 
-// ✅ تحقق من صحة التوقيع القادم من TTPay
-function verifySignature(data, signature) {
-  const secret = process.env.API_SECRET;
-  const sorted = Object.keys(data).sort().reduce((obj, key) => {
-    obj[key] = data[key];
-    return obj;
-  }, {});
-  const string = Object.entries(sorted).map(([k, v]) => `${k}=${v}`).join("&");
-  const hash = crypto.createHmac("sha256", secret).update(string).digest("hex");
-  return hash === signature;
+// توفير الملفات الثابتة من مجلد public
+app.use(express.static(path.join(__dirname, 'public')));
+
+// إعداد مزود الشبكة (Binance Smart Chain)
+const provider = new ethers.providers.JsonRpcProvider('https://bsc-dataseed.binance.org/');
+
+// عنوان USDT على BSC
+const usdtAddress = '0x55d398326f99059fF775485246999027B3197955';
+
+// ABI مبسط لـ USDT (لمعاملات transfer و balanceOf)
+const usdtAbi = [
+  "function transfer(address to, uint256 amount) public returns (bool)",
+  "function balanceOf(address account) external view returns (uint256)"
+];
+
+// قراءة المفتاح الخاص من متغيرات البيئة (env)
+const privateKey = process.env.PRIVATE_KEY;
+if (!privateKey) {
+  console.error("⚠️  يجب تعيين PRIVATE_KEY في ملف .env");
+  process.exit(1);
 }
 
-// 📥 Webhook من TTPay
-app.post("/callback", (req, res) => {
-  const body = req.body;
-  const signature = req.headers["x-sign"];
+// إنشاء المحفظة الحقيقية
+const wallet = new ethers.Wallet(privateKey, provider);
 
-  if (!verifySignature(body, signature)) {
-    return res.status(403).send("Invalid signature");
-  }
+// إنشاء عقد USDT
+const usdtContract = new ethers.Contract(usdtAddress, usdtAbi, wallet);
 
-  console.log("✅ مدفوعات جديدة:", body);
-  // ⬅️ هنا يمكنك تحديث رصيد اللاعب في قاعدة البيانات
-  res.send("OK");
+// API: الحصول على عنوان المحفظة الحقيقية
+app.get('/wallet-address', (req, res) => {
+  res.json({ address: wallet.address });
 });
 
-// 💸 API لإنشاء رابط دفع من TTPay
-app.post("/api/payment", async (req, res) => {
+// API: الحصول على رصيد USDT للمحفظة الحقيقية
+app.get('/balance', async (req, res) => {
   try {
-    const { amount, order_id } = req.body;
-
-    const payload = {
-      amount,
-      order_id,
-      token: process.env.API_TOKEN,
-      redirect_url: "https://flatdrivegame-4.onrender.com"
-    };
-
-    const sorted = Object.keys(payload).sort().reduce((obj, key) => {
-      obj[key] = payload[key];
-      return obj;
-    }, {});
-    const string = Object.entries(sorted).map(([k, v]) => `${k}=${v}`).join("&");
-    const signature = crypto.createHmac("sha256", process.env.API_SECRET).update(string).digest("hex");
-
-    const response = await fetch("https://api.tt-pay.tech/api/v1/order/create", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Sign": signature
-      },
-      body: JSON.stringify(payload)
-    });
-
-    const data = await response.json();
-    return res.json(data);
+    const address = req.query.address;
+    if (!address) return res.status(400).json({ error: 'Address required' });
+    const balanceRaw = await usdtContract.balanceOf(address);
+    // USDT على BSC له 18 خانة عشرية لذا نقسم على 10^18
+    const balance = ethers.utils.formatUnits(balanceRaw, 18);
+    res.json({ balance });
   } catch (err) {
-    console.error("🚨 TTPay Error:", err);
-    return res.status(500).json({ code: -1, message: "TTPay request failed" });
+    res.status(500).json({ error: err.message });
   }
 });
 
-// 🌐 تقديم ملفات الواجهة
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-app.use(express.static(path.join(__dirname, "public")));
+// API: إرسال USDT (إما جمع الأرباح أو إرسال خارجي)
+app.post('/send-usdt', async (req, res) => {
+  try {
+    const { recipient, amount } = req.body;
+    const to = recipient || wallet.address; // إذا لم يتم تحديد مستلم ترسل إلى المحفظة نفسها
+    if (!amount || amount <= 0) return res.status(400).json({ success: false, error: 'Amount must be > 0' });
 
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+    // USDT عدد الخانات العشرية 18
+    const amountWei = ethers.utils.parseUnits(amount.toString(), 18);
+
+    const tx = await usdtContract.transfer(to, amountWei);
+    await tx.wait();
+
+    res.json({ success: true, txHash: tx.hash });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`Wallet address: ${wallet.address}`);
 });
