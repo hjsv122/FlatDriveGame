@@ -1,7 +1,7 @@
 {
   "name": "flatdrive-game-server",
   "version": "1.0.0",
-  "description": "FlatDrive game backend with blockchain wallet integration",
+  "description": "FlatDrive game backend with wallet that only receives USDT",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
