@@ -11,8 +11,8 @@ app.use(express.json());
 // توفير الملفات الثابتة من مجلد public
 app.use(express.static(path.join(__dirname, 'public')));
 
-// إعداد مزود الشبكة (Binance Smart Chain)
-const provider = new ethers.providers.JsonRpcProvider('https://bsc-dataseed.binance.org/');
+// إعداد مزود الشبكة (Binance Smart Chain) - ethers 6.x
+const provider = new ethers.JsonRpcProvider('https://bsc-dataseed.binance.org/');
 
 // عنوان USDT على BSC
 const usdtAddress = '0x55d398326f99059fF775485246999027B3197955';
@@ -48,7 +48,7 @@ app.get('/balance', async (req, res) => {
     if (!address) return res.status(400).json({ error: 'Address required' });
     const balanceRaw = await usdtContract.balanceOf(address);
     // USDT على BSC له 18 خانة عشرية لذا نقسم على 10^18
-    const balance = ethers.utils.formatUnits(balanceRaw, 18);
+    const balance = ethers.formatUnits(balanceRaw, 18);
     res.json({ balance });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -63,7 +63,7 @@ app.post('/send-usdt', async (req, res) => {
     if (!amount || amount <= 0) return res.status(400).json({ success: false, error: 'Amount must be > 0' });
 
     // USDT عدد الخانات العشرية 18
-    const amountWei = ethers.utils.parseUnits(amount.toString(), 18);
+    const amountWei = ethers.parseUnits(amount.toString(), 18);
 
     const tx = await usdtContract.transfer(to, amountWei);
     await tx.wait();
