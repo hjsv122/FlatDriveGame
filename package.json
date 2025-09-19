@@ -1,14 +1,15 @@
 {
-  "name": "flatdrivegame",
+  "name": "flatdrive-game-server",
   "version": "1.0.0",
-  "description": "FlatDrive Game with wallet integration",
+  "description": "FlatDrive game backend with wallet that only receives USDT",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "ethers": "^6.15.0",
-    "express": "^4.18.2",
-    "dotenv": "^16.3.1"
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "ethers": "^6.6.1",
+    "express": "^4.18.2"
   }
 }
