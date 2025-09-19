@@ -1,72 +1,33 @@
 body {
   font-family: Arial, sans-serif;
-  background: #0f172a;
-  color: #e6eef8;
-  padding: 20px;
-  display: flex;
-  justify-content: center;
-  direction: rtl;
+  text-align: center;
+  background: #121212;
+  color: #fff;
+  margin: 0;
+  padding: 0;
 }
 
 .game-container {
-  width: 760px;
-  background: #0b1220;
-  padding: 18px;
-  border-radius: 10px;
-  box-shadow: 0 6px 24px rgba(2, 6, 23, 0.6);
-}
-
-h1 {
-  font-size: 20px;
-  margin-bottom: 10px;
-}
-
-.info {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  background: #071026;
-  padding: 10px;
-  border-radius: 8px;
-  margin-bottom: 10px;
-  font-size: 14px;
-  line-height: 1.6;
+  margin-top: 30px;
 }
 
 canvas {
-  width: 100%;
-  height: 140px;
-  background: #02111b;
-  border-radius: 8px;
-  display: block;
-  margin: 12px 0;
-}
-
-.controls {
-  margin-bottom: 16px;
+  background: #222;
+  border: 3px solid #00ffcc;
+  border-radius: 10px;
 }
 
 button {
-  background: #0ea5a6;
-  color: #041014;
+  padding: 10px 20px;
+  margin: 10px;
   border: none;
-  padding: 8px 12px;
   border-radius: 8px;
+  background: #00ffcc;
+  color: #000;
+  font-weight: bold;
   cursor: pointer;
-  margin: 4px 8px 4px 0;
 }
 
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-select {
-  width: 100%;
-  padding: 8px;
-  border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: #02121a;
-  color: white;
-  margin-top: 6px;
+button:hover {
+  background: #00e6b8;
 }
