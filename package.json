@@ -1,18 +1,17 @@
 {
-  "name": "flatdrive-payments",
+  "name": "flatdrive-game",
   "version": "1.0.0",
+  "description": "FlatDrive Game with Wallet Integration",
   "main": "server.js",
+  "type": "module",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "better-sqlite3": "^8.0.0",
-    "dotenv": "^16.0.0",
-    "ethers": "^6.7.0",
     "express": "^4.18.2",
-    "body-parser": "^1.20.2",
-    "cors": "^2.8.5",
-    "helmet": "^7.0.0",
-    "express-rate-limit": "^6.7.0"
+    "ethers": "^6.7.0"
+  },
+  "engines": {
+    "node": "22.x"
   }
 }
