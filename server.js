@@ -23,6 +23,7 @@ const usdtAbi = [
   "function balanceOf(address account) external view returns (uint256)"
 ];
 
+// مفتاح المحفظة الخاصة (المُرسلة)
 const privateKey = process.env.PRIVATE_KEY;
 if (!privateKey) {
   console.error("⚠️ يجب تعيين PRIVATE_KEY في ملف .env");
@@ -32,15 +33,16 @@ if (!privateKey) {
 const wallet = new ethers.Wallet(privateKey, provider);
 const usdtContract = new ethers.Contract(usdtAddress, usdtAbi, wallet);
 
+// ✅ طباعة عنوان محفظتك الخاصة
 console.log("🎯 Your wallet address is:", wallet.address);
 
-// API: عنوان المحفظة
+// API: الحصول على عنوان المحفظة
 app.get('/wallet-address', (req, res) => {
   console.log("GET /wallet-address");
   res.json({ address: wallet.address });
 });
 
-// API: الحصول على رصيد USDT لأي عنوان
+// API: التحقق من رصيد أي محفظة
 app.get('/balance', async (req, res) => {
   console.log("GET /balance", req.query);
   try {
@@ -58,7 +60,7 @@ app.get('/balance', async (req, res) => {
   }
 });
 
-// API: جمع الأرباح → ترسل دائمًا إلى محفظتك الخاصة
+// API: جمع الأرباح وإرسالها إلى المحفظة الخاصة بك
 app.post('/send-usdt', async (req, res) => {
   console.log("POST /send-usdt", req.body);
 
@@ -69,7 +71,7 @@ app.post('/send-usdt', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Amount must be > 0' });
     }
 
-    // 🟢 المحفظة التي تستلم الأرباح (محفظتك الخاصة)
+    // 🟢 عنوان المحفظة المستقبلية (يجب أن يكون بدون أي أخطاء)
     const receiverAddress = '0x1cF14e559b8dD7d32c2Ef8fcD6D2C3e6FbB95141';
 
     const amountWei = ethers.parseUnits(amount.toString(), 18);
@@ -87,6 +89,7 @@ app.post('/send-usdt', async (req, res) => {
   }
 });
 
+// تشغيل السيرفر
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT}`);
