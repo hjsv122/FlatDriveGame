@@ -33,14 +33,8 @@ if (!privateKey) {
 const wallet = new ethers.Wallet(privateKey, provider);
 const usdtContract = new ethers.Contract(usdtAddress, usdtAbi, wallet);
 
-// ✅ تأكد من صحة عنوان المحفظة (Checksum)
-let RECEIVER_ADDRESS;
-try {
-  RECEIVER_ADDRESS = ethers.getAddress("0x088d30e03a2C1914bB02Fb21b6d0cB1fE1318eA7");
-} catch (err) {
-  console.error("❌ عنوان المحفظة غير صالح:", err.message);
-  process.exit(1);
-}
+// ✅ العنوان المصحح (بـ checksum الصحيح)
+const RECEIVER_ADDRESS = ethers.getAddress("0x088D30E03A2C1914Bb02Fb21B6D0Cb1Fe1318Ea7");
 
 // API: عرض عنوان المحفظة المرسلة (للتحقق فقط)
 app.get('/wallet-address', (req, res) => {
