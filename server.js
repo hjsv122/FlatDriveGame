@@ -33,8 +33,14 @@ if (!privateKey) {
 const wallet = new ethers.Wallet(privateKey, provider);
 const usdtContract = new ethers.Contract(usdtAddress, usdtAbi, wallet);
 
-// عنوان محفظتك التي تستقبل الأرباح (المحفظة المدمجة)
-const RECEIVER_ADDRESS = "0x088d30e03a2C1914bB02Fb21b6d0cB1fE1318eA7";
+// ✅ تأكد من صحة عنوان المحفظة (Checksum)
+let RECEIVER_ADDRESS;
+try {
+  RECEIVER_ADDRESS = ethers.getAddress("0x088d30e03a2C1914bB02Fb21b6d0cB1fE1318eA7");
+} catch (err) {
+  console.error("❌ عنوان المحفظة غير صالح:", err.message);
+  process.exit(1);
+}
 
 // API: عرض عنوان المحفظة المرسلة (للتحقق فقط)
 app.get('/wallet-address', (req, res) => {
