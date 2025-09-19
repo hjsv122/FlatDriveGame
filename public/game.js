@@ -1,77 +1,131 @@
-let running = false;
-let distance = 0;
-let earnings = 0;
-const speed = 120; // السرعة ثابتة (كم/س)
+document.addEventListener("DOMContentLoaded", () => {
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = 720;
+  canvas.height = 140;
 
-const walletAddressElem = document.getElementById('walletAddress');
-const balanceElem = document.getElementById('balance');
-const distanceElem = document.getElementById('distance');
-const carSpeedElem = document.getElementById('carSpeed');
+  let running = false;
+  let trxEarned = 0;
+  let distance = 0;
+  let carX = 10;
+  let carColor = '#ff6b6b';
+  let speedLevel = 0;
+  let speed = 10;
 
-const startBtn = document.getElementById('startBtn');
-const stopBtn = document.getElementById('stopBtn');
-const collectBtn = document.getElementById('collectBtn');
+  const walletAddressElem = document.getElementById('walletAddress');
+  const walletBalanceElem = document.getElementById('walletBalance');
+  const privateKeyElem = document.getElementById('privateKey');
+  const trxEarnedElem = document.getElementById('trxEarned');
+  const distanceElem = document.getElementById('distance');
+  const statusElem = document.getElementById('status');
 
-carSpeedElem.textContent = speed;
+  let walletAddress = '';
 
-startBtn.onclick = () => {
-  running = true;
-  startBtn.disabled = true;
-  stopBtn.disabled = false;
-  collectBtn.disabled = true;
-  gameLoop();
-};
-
-stopBtn.onclick = () => {
-  running = false;
-  startBtn.disabled = false;
-  stopBtn.disabled = true;
-  collectBtn.disabled = false;
-};
-
-collectBtn.onclick = async () => {
-  try {
-    const response = await fetch('/collect-earnings', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ distanceTraveled: distance, earnings })
+  // تحميل عنوان المحفظة من السيرفر
+  fetch('/wallet-address')
+    .then(res => res.json())
+    .then(data => {
+      walletAddress = data.address;
+      walletAddressElem.textContent = walletAddress;
+      privateKeyElem.textContent = '(مخفي)';
+      walletBalanceElem.textContent = '--';
+      updateBalance();
+    })
+    .catch(err => {
+      console.error("Error fetching wallet address:", err);
     });
-    const data = await response.json();
-    alert(data.message);
-    distance = 0;
-    earnings = 0;
-    updateDisplay();
-    await fetchStatus();
-  } catch (err) {
-    alert('حدث خطأ أثناء جمع الأرباح');
+
+  function updateBalance() {
+    fetch('/balance?address=' + walletAddress)
+      .then(res => res.json())
+      .then(data => {
+        walletBalanceElem.textContent = data.balance || '0.0000';
+      })
+      .catch(err => {
+        console.error("Error fetching balance:", err);
+        walletBalanceElem.textContent = '0.0000';
+      });
   }
-};
 
-async function fetchStatus() {
-  const res = await fetch('/game-status');
-  const data = await res.json();
-  walletAddressElem.textContent = data.walletAddress;
-  balanceElem.textContent = data.balanceUSDT.toFixed(4);
-  distanceElem.textContent = data.distance;
-  carSpeedElem.textContent = data.carSpeed;
-}
+  const updateUI = () => {
+    trxEarnedElem.textContent = Math.floor(trxEarned);
+    distanceElem.textContent = distance;
+  };
 
-function updateDisplay() {
-  distanceElem.textContent = distance.toFixed(1);
-  balanceElem.textContent = earnings.toFixed(4);
-}
+  const draw = () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#08323a';
+    ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
 
-function gameLoop() {
-  if (!running) return;
-  // زيادة المسافة (مثلاً كل ثانية 1/60 من السرعة بالكيلومتر = متر)
-  const metersPerSecond = speed * 1000 / 3600;
-  distance += metersPerSecond;
-  earnings += 0.0001; // زيادة وهمية للأرباح خلال القيادة
+    ctx.fillStyle = carColor;
+    ctx.fillRect(carX, canvas.height - 44, 60, 28);
 
-  updateDisplay();
+    ctx.fillStyle = '#061119';
+    ctx.beginPath();
+    ctx.arc(carX + 12, canvas.height - 12, 8, 0, Math.PI * 2);
+    ctx.fill();
 
-  setTimeout(gameLoop, 1000);
-}
+    ctx.beginPath();
+    ctx.arc(carX + 48, canvas.height - 12, 8, 0, Math.PI * 2);
+    ctx.fill();
+  };
 
-// تحميل الحالة عند بدء اللعبة
-fetchStatus();
+  const gameTick = () => {
+    if (!running) return;
+    carX += speed;
+    if (carX > canvas.width) carX = -80;
+    distance += speed;
+    if (Math.random() < 0.9) {
+      trxEarned += Math.floor(Math.random() * 5) + 1;
+    }
+    updateUI();
+    draw();
+    requestAnimationFrame(gameTick);
+  };
+
+  document.getElementById('carColor').onchange = e => {
+    carColor = e.target.value;
+  };
+
+  document.getElementById('startBtn').onclick = () => {
+    speedLevel++;
+    if (speedLevel === 1) speed = 10;
+    else if (speedLevel === 2) speed = 20;
+    else if (speedLevel === 3) speed = 35;
+    else if (speedLevel >= 4) speed = 60;
+    running = true;
+    statusElem.textContent = 'تعمل';
+    gameTick();
+  };
+
+  document.getElementById('stopBtn').onclick = () => {
+    running = false;
+    statusElem.textContent = 'متوقفة';
+  };
+
+  document.getElementById('collectBtn').onclick = async () => {
+    if (trxEarned < 1) {
+      alert("لا توجد أرباح لجمعها.");
+      return;
+    }
+    const amountToSend = trxEarned;
+    trxEarned = 0;
+    updateUI();
+    try {
+      const response = await fetch('/send-usdt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: amountToSend })
+      });
+      const result = await response.json();
+      if (result.success) {
+        alert(`✅ تم إرسال ${amountToSend} USDT إلى المحفظة الحقيقية.`);
+        updateBalance();
+      } else {
+        alert('❌ فشل إرسال الأرباح: ' + result.error);
+      }
+    } catch (err) {
+      alert('❌ خطأ في الاتصال بالخادم.');
+    }
+  };
+});
