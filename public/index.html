@@ -3,46 +3,39 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>FlatDrive Game</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #222;
-      color: white;
-      max-width: 600px;
-      margin: auto;
-      padding: 20px;
-      text-align: center;
-    }
-    button {
-      padding: 10px 20px;
-      margin-top: 15px;
-      font-size: 1.1rem;
-      cursor: pointer;
-    }
-    .status {
-      margin-top: 20px;
-      font-size: 1.2rem;
-      background: #333;
-      padding: 15px;
-      border-radius: 8px;
-    }
-  </style>
+  <title>🚗 FlatDrive — النسخة النهائية مع محفظة حقيقية</title>
+  <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
-  <h1>🚗 FlatDrive - النسخة النهائية</h1>
+  <div class="game-container">
+    <h1>🚗 FlatDrive — النسخة النهائية مع محفظة حقيقية</h1>
+    <div class="wallet-info">
+      <div><strong>محفظتك:</strong> <span id="walletAddress">جاري التوليد...</span></div>
+      <div><strong>الرصيد (USDT):</strong> <span id="walletBalance">--</span></div>
+      <div><strong>🔐 Private Key:</strong> <span id="privateKey">(مخفي)</span></div>
+    </div>
 
-  <div class="status">
-    <p><strong>محفظتك:</strong> <span id="walletAddress">جارٍ التحميل...</span></p>
-    <p><strong>الرصيد (USDT):</strong> <span id="balance">0</span></p>
-    <p><strong>المسافة المقطوعة (متر):</strong> <span id="distance">0</span></p>
-    <p><strong>سرعة السيارة:</strong> <span id="carSpeed">0</span> كم/س</p>
+    <div class="info">
+      <div>USDT المكتسب: <strong id="trxEarned">0</strong></div>
+      <div>المسافة المقطوعة: <span id="distance">0</span> متر</div>
+      <div>الحالة: <span id="status">متوقفة</span></div>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <div class="controls">
+      <select id="carColor">
+        <option value="#ff6b6b">أحمر</option>
+        <option value="#4ade80">أخضر</option>
+        <option value="#3b82f6">أزرق</option>
+        <option value="#facc15">أصفر</option>
+      </select>
+
+      <button id="startBtn">ابدأ القيادة</button>
+      <button id="stopBtn">توقف</button>
+      <button id="collectBtn">اجمع الأرباح</button>
+    </div>
   </div>
-
-  <button id="startBtn">ابدأ القيادة</button>
-  <button id="stopBtn" disabled>توقف</button>
-  <button id="collectBtn" disabled>اجمع الأرباح</button>
-
-  <script src="game.js"></script>
+  <script src="/game.js"></script>
 </body>
 </html>
