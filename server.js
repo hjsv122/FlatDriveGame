@@ -33,16 +33,16 @@ if (!privateKey) {
 const wallet = new ethers.Wallet(privateKey, provider);
 const usdtContract = new ethers.Contract(usdtAddress, usdtAbi, wallet);
 
-// ✅ العنوان المصحح (بـ checksum الصحيح)
-const RECEIVER_ADDRESS = ethers.getAddress("0x088D30E03A2C1914Bb02Fb21B6D0Cb1Fe1318Ea7");
+// ✅ نستخدم العنوان مباشرة بدون getAddress
+const RECEIVER_ADDRESS = "0x088D30E03A2C1914Bb02Fb21B6D0Cb1Fe1318Ea7";
 
-// API: عرض عنوان المحفظة المرسلة (للتحقق فقط)
+// API: عرض عنوان المحفظة
 app.get('/wallet-address', (req, res) => {
   console.log("GET /wallet-address");
   res.json({ address: wallet.address });
 });
 
-// API: رصيد USDT لأي عنوان
+// API: استعلام الرصيد
 app.get('/balance', async (req, res) => {
   console.log("GET /balance", req.query);
   try {
@@ -60,7 +60,7 @@ app.get('/balance', async (req, res) => {
   }
 });
 
-// API: إرسال الأرباح إلى المحفظة المدمجة
+// API: إرسال الأرباح
 app.post('/send-usdt', async (req, res) => {
   console.log("POST /send-usdt", req.body);
   try {
@@ -83,7 +83,7 @@ app.post('/send-usdt', async (req, res) => {
   }
 });
 
-// بدء الخادم
+// تشغيل الخادم
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT}`);
