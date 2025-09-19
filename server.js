@@ -8,39 +8,35 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 🟢 إعداد شبكة BSC
+const publicPath = path.join(__dirname, 'public');
+app.use(express.static(publicPath));
+console.log(`📂 Static files served from ${publicPath}`);
+
+// إعداد شبكة BSC
 const provider = new ethers.JsonRpcProvider('https://bsc-dataseed.binance.org/');
 
-// 🟢 عقد USDT على شبكة BSC
+// عقد USDT
 const usdtAddress = '0x55d398326f99059fF775485246999027B3197955';
 const usdtAbi = [
-  "function transfer(address to, uint256 amount) public returns (bool)",
   "function balanceOf(address account) external view returns (uint256)"
 ];
 
-// 🟢 المحفظة التي ستُستخدم لاستقبال الأرباح
 const privateKey = process.env.PRIVATE_KEY;
 if (!privateKey) {
-  console.error("❌ يجب تعيين PRIVATE_KEY في ملف .env");
+  console.error("⚠️ يرجى وضع PRIVATE_KEY في ملف .env");
   process.exit(1);
 }
 
 const wallet = new ethers.Wallet(privateKey, provider);
 const usdtContract = new ethers.Contract(usdtAddress, usdtAbi, wallet);
 
-console.log("✅ محفظة الأرباح:", wallet.address);
-
-// 🟢 تقديم الملفات الثابتة
-const publicPath = path.join(__dirname, 'public');
-app.use(express.static(publicPath));
-console.log(`📂 Static files served from ${publicPath}`);
-
-// 🟢 واجهة للحصول على عنوان المحفظة
+// GET: عنوان المحفظة
 app.get('/wallet-address', (req, res) => {
+  console.log("GET /wallet-address");
   res.json({ address: wallet.address });
 });
 
-// 🟢 التحقق من الرصيد
+// GET: رصيد المحفظة
 app.get('/balance', async (req, res) => {
   try {
     const address = req.query.address || wallet.address;
@@ -48,31 +44,30 @@ app.get('/balance', async (req, res) => {
     const balance = ethers.formatUnits(balanceRaw, 18);
     res.json({ balance });
   } catch (err) {
+    console.error("❌ Error in /balance:", err.message);
     res.status(500).json({ error: err.message });
   }
 });
 
-// 🟢 استقبال الأرباح داخل المحفظة
+// POST: تسجيل الأرباح فقط (بدون إرسال فعلي)
 app.post('/send-usdt', async (req, res) => {
+  console.log("POST /send-usdt", req.body);
   try {
     const { amount } = req.body;
     if (!amount || amount <= 0) {
       return res.status(400).json({ success: false, error: 'Amount must be > 0' });
     }
 
-    const amountWei = ethers.parseUnits(amount.toString(), 18);
-    const tx = await usdtContract.transfer(wallet.address, amountWei);
-    await tx.wait();
-
-    res.json({ success: true, txHash: tx.hash });
+    console.log(`✅ أرباح مسجلة داخل اللعبة: ${amount} USDT`);
+    res.json({ success: true, message: `تم تسجيل ${amount} USDT كمكافأة في المحفظة.` });
   } catch (err) {
+    console.error("❌ Error in send-usdt:", err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// ✅ استخدم المنفذ الذي توفره منصة Render
-const PORT = process.env.PORT;
-
-app.listen(PORT, () => {
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`✅ Wallet address: ${wallet.address}`);
 });
