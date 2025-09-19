@@ -30,6 +30,11 @@ const usdtContract = new ethers.Contract(usdtAddress, usdtAbi, wallet);
 
 console.log("✅ محفظة الأرباح:", wallet.address);
 
+// 🟢 تقديم الملفات الثابتة
+const publicPath = path.join(__dirname, 'public');
+app.use(express.static(publicPath));
+console.log(`📂 Static files served from ${publicPath}`);
+
 // 🟢 واجهة للحصول على عنوان المحفظة
 app.get('/wallet-address', (req, res) => {
   res.json({ address: wallet.address });
@@ -65,7 +70,9 @@ app.post('/send-usdt', async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 3000;
+// ✅ استخدم المنفذ الذي توفره منصة Render
+const PORT = process.env.PORT;
+
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
