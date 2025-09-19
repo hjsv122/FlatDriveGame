@@ -1,49 +1,22 @@
-<!doctype html>
-<html lang="ar" dir="rtl">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>FlatDrive — Polygon USDT</title>
-  <link rel="stylesheet" href="/style.css" />
-  <!-- ethers.js -->
-  <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.0/dist/ethers.umd.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🚗 FlatDrive Game</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="game-container">
-    <h1>🚗 FlatDrive — نسخة بمحفظة Polygon</h1>
-
-    <div class="info">
-      <div>USDT المكتسب: <strong id="trxEarned">0</strong></div>
-      <div>المسافة المقطوعة: <span id="distance">0</span> متر</div>
-      <div>الرصيد الداخلي (USDT): <span id="wallet">0.00</span></div>
-      <div>رصيد USDT الحقيقي: <span id="realWallet">جارٍ التحميل...</span></div>
-      <div>تمويل اللعبة: <span id="gameFund">0.00</span></div>
-      <div>الحالة: <span id="status">متوقفة</span></div>
-      <div>📬 عنوان محفظتك: <code id="walletAddress">---</code></div>
-    </div>
-
-    <canvas id="gameCanvas"></canvas>
-
-    <div class="controls">
-      <select id="carColor">
-        <option value="#ff6b6b">أحمر</option>
-        <option value="#4ade80">أخضر</option>
-        <option value="#3b82f6">أزرق</option>
-        <option value="#facc15">أصفر</option>
-      </select>
-
-      <button id="startBtn">ابدأ القيادة</button>
-      <button id="stopBtn">توقف</button>
-      <button id="collectBtn">اجمع (طلب سحب حقيقي)</button>
-      <button id="convertFund">تحويل تمويل اللعبة</button>
-      <button id="showPrivateBtn">🔐 عرض المفتاح الخاص</button>
-    </div>
-
-    <div style="font-size:12px; color:#9fb7c7; margin-top:8px;">
-      ملاحظة: السحوبات الحقيقية تُدار عبر خادمك (Hot Wallet). تأكّد من تمويل محفظة الخادم بـ USDT وMATIC.
-    </div>
+    <h1>🚗 FlatDrive</h1>
+    <canvas id="gameCanvas" width="600" height="300"></canvas>
+    <button id="startBtn">Start Game</button>
+    <p id="score">Score: 0</p>
+    <p id="wallet">Wallet: <span id="walletAddress">Loading...</span></p>
+    <p id="balance">Balance: <span id="walletBalance">0</span> USDT</p>
   </div>
 
-  <script src="/game.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.0/dist/ethers.umd.min.js"></script>
+  <script src="game.js"></script>
 </body>
 </html>
