@@ -1,66 +1,92 @@
 require('dotenv').config();
 const express = require('express');
+const cors = require('cors');
 const { ethers } = require('ethers');
 const path = require('path');
 
 const app = express();
-const port = process.env.PORT || 10000;
+app.use(cors());
+app.use(express.json());
 
-const PRIVATE_KEY = process.env.PRIVATE_KEY;
-const RPC_URL = process.env.RPC_URL;
+// تقديم الملفات الثابتة
+const publicPath = path.join(__dirname, 'public');
+app.use(express.static(publicPath));
+console.log(`📂 Static files served from ${publicPath}`);
 
-// إعداد موفر الشبكة والمحفظة
-const provider = new ethers.JsonRpcProvider(RPC_URL);
-const wallet = new ethers.Wallet(PRIVATE_KEY, provider);
+// إعداد شبكة BSC
+const provider = new ethers.JsonRpcProvider('https://bsc-dataseed.binance.org/');
 
-// عقد USDT BEP20 (Binance Smart Chain)
-const USDT_ADDRESS = '0x55d398326f99059fF775485246999027B3197955';
-const USDT_ABI = [
-  "function balanceOf(address) view returns (uint256)",
-  "event Transfer(address indexed from, address indexed to, uint256 value)"
+// عنوان عقد USDT على BSC
+const usdtAddress = '0x55d398326f99059fF775485246999027B3197955';
+const usdtAbi = [
+  "function transfer(address to, uint256 amount) public returns (bool)",
+  "function balanceOf(address account) external view returns (uint256)"
 ];
 
-const usdtContract = new ethers.Contract(USDT_ADDRESS, USDT_ABI, provider);
+// مفتاحك الخاص (للمحفظة التي ترسل منها الأرباح)
+const privateKey = process.env.PRIVATE_KEY;
+if (!privateKey) {
+  console.error("⚠️ يجب تعيين PRIVATE_KEY في ملف .env");
+  process.exit(1);
+}
 
-// بيانات اللعبة الأساسية (محاكاة)
-let gameData = {
-  carSpeed: 120,
-  earnings: 0,
-  distance: 0
-};
+const wallet = new ethers.Wallet(privateKey, provider);
+const usdtContract = new ethers.Contract(usdtAddress, usdtAbi, wallet);
 
-app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+// عنوان محفظتك التي تستقبل الأرباح (المحفظة المدمجة)
+const RECEIVER_ADDRESS = "0x088d30e03a2C1914bB02Fb21b6d0cB1fE1318eA7";
 
-// API لجلب حالة اللعبة والمحفظة
-app.get('/game-status', async (req, res) => {
+// API: عرض عنوان المحفظة المرسلة (للتحقق فقط)
+app.get('/wallet-address', (req, res) => {
+  console.log("GET /wallet-address");
+  res.json({ address: wallet.address });
+});
+
+// API: رصيد USDT لأي عنوان
+app.get('/balance', async (req, res) => {
+  console.log("GET /balance", req.query);
   try {
-    const balance = await usdtContract.balanceOf(wallet.address);
-    gameData.earnings = parseFloat(ethers.formatUnits(balance, 18));
-
-    res.json({
-      walletAddress: wallet.address,
-      balanceUSDT: gameData.earnings,
-      carSpeed: gameData.carSpeed,
-      distance: gameData.distance
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Failed to fetch game status' });
+    const address = req.query.address;
+    if (!address) {
+      return res.status(400).json({ error: 'Address required' });
+    }
+    const balanceRaw = await usdtContract.balanceOf(address);
+    const balance = ethers.formatUnits(balanceRaw, 18);
+    console.log(`Balance of ${address}: ${balance}`);
+    res.json({ balance });
+  } catch (err) {
+    console.error("Error in /balance:", err.message);
+    res.status(500).json({ error: err.message });
   }
 });
 
-// API لجمع الأرباح (تحديث داخلي فقط، لا يتم إرسال عملات من هنا)
-app.post('/collect-earnings', (req, res) => {
-  const { distanceTraveled, earnings } = req.body;
+// API: إرسال الأرباح إلى المحفظة المدمجة
+app.post('/send-usdt', async (req, res) => {
+  console.log("POST /send-usdt", req.body);
+  try {
+    const { amount } = req.body;
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ success: false, error: 'Amount must be > 0' });
+    }
 
-  gameData.distance += distanceTraveled;
-  gameData.earnings += earnings; // هذا للتحديث داخلي داخل اللعبة فقط
+    const amountWei = ethers.parseUnits(amount.toString(), 18);
+    console.log(`🔁 Transferring ${amount} USDT to ${RECEIVER_ADDRESS}`);
 
-  res.json({ message: 'Collected earnings successfully', gameData });
+    const tx = await usdtContract.transfer(RECEIVER_ADDRESS, amountWei);
+    await tx.wait();
+
+    console.log("✅ Transaction hash:", tx.hash);
+    res.json({ success: true, txHash: tx.hash });
+  } catch (err) {
+    console.error("❌ Error in send-usdt:", err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
-  console.log(`Wallet address: ${wallet.address}`);
+// بدء الخادم
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`✅ Sender Wallet address: ${wallet.address}`);
+  console.log(`📥 Profits go to: ${RECEIVER_ADDRESS}`);
 });
