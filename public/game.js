@@ -11,9 +11,9 @@ document.addEventListener("DOMContentLoaded", () => {
   canvas.height = 140;
 
   let running = false;
-  let btcEarned = 0;   // بالساتوشي (عدد صحيح)
-  let walletBtc = 0;   // رصيد داخلي بالساتوشي
-  let gameFund = 0;    // تمويل اللعبة بالساتوشي
+  let btcEarned = 0;
+  let walletBtc = 0;
+  let gameFund = 0;
   let distance = 0;
 
   let carX = 10;
@@ -25,12 +25,6 @@ document.addEventListener("DOMContentLoaded", () => {
   let address = '—';
   let wif = '—';
 
-  // المحفظة الحقيقية الثابتة (عنوان البيتكوين mainnet الخاص بالخادم)
-  const serverBitcoinAddress = "1HXoXdtiMzPJoJQZaP4iuEAAacHt7E8rFK";
-
-  // API token (يجب تحديثه ليطابق الموجود في الخادم)
-  const API_TOKEN = "PUT_YOUR_API_TOKEN_HERE";
-
   const elEarn = document.getElementById('btcEarned');
   const elWallet = document.getElementById('walletBtc');
   const elAddress = document.getElementById('btcAddress');
@@ -39,25 +33,25 @@ document.addEventListener("DOMContentLoaded", () => {
   const elGameFund = document.getElementById('gameFund');
 
   const updateUI = () => {
-    elEarn.textContent = btcEarned.toString();
-    elWallet.textContent = walletBtc.toString();
-    elGameFund.textContent = gameFund.toString();
-    elAddress.textContent = serverBitcoinAddress;
+    elEarn.textContent = Math.floor(btcEarned);
+    elWallet.textContent = Math.floor(walletBtc);
+    elGameFund.textContent = Math.floor(gameFund);
+    elAddress.textContent = address;
     elWif.textContent = wif;
   };
 
   const draw = () => {
-    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = '#08323a';
     ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
     ctx.fillStyle = carColor;
     ctx.fillRect(carX, canvas.height - 44, 60, 28);
     ctx.fillStyle = '#061119';
     ctx.beginPath();
-    ctx.arc(carX + 12, canvas.height - 12, 8, 0, Math.PI*2);
+    ctx.arc(carX + 12, canvas.height - 12, 8, 0, Math.PI * 2);
     ctx.fill();
     ctx.beginPath();
-    ctx.arc(carX + 48, canvas.height - 12, 8, 0, Math.PI*2);
+    ctx.arc(carX + 48, canvas.height - 12, 8, 0, Math.PI * 2);
     ctx.fill();
   };
 
@@ -67,8 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (carX > canvas.width) carX = -80;
     distance += speed;
 
-    // توليد أرباح عشوائية بين 50 إلى 100 ساتوشي
-    const add = Math.floor(Math.random() * 51) + 50;
+    const add = Math.floor(Math.random() * 50) + 50;
     btcEarned += add;
 
     updateUI();
@@ -83,10 +76,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const p2pkh = bitcoin.payments.p2pkh({ pubkey: keyPair.publicKey });
         address = p2pkh.address || '—';
         wif = keyPair.toWIF();
-      } else if (bitcoin.ECPair) {
-        keyPair = bitcoin.ECPair.makeRandom();
-        address = keyPair.getAddress ? keyPair.getAddress() : '—';
-        wif = keyPair.toWIF ? keyPair.toWIF() : '—';
       } else {
         alert('نسخة المكتبة لا تدعم ECPair.makeRandom()');
         return;
@@ -101,10 +90,11 @@ document.addEventListener("DOMContentLoaded", () => {
       alert('فشل توليد المحفظة: ' + err.message);
       return;
     }
+
     updateUI();
   }
 
-  // استرجاع المحفظة من LocalStorage إذا موجودة
+  // استرجاع المحفظة من LocalStorage
   const savedAddress = localStorage.getItem('btcAddress');
   const savedWif = localStorage.getItem('btcWif');
 
@@ -113,7 +103,7 @@ document.addEventListener("DOMContentLoaded", () => {
     wif = savedWif;
     updateUI();
   } else {
-    generateWallet();
+    generateWallet(); // توليد أولي
   }
 
   document.getElementById('carColor').onchange = e => {
@@ -138,40 +128,49 @@ document.addEventListener("DOMContentLoaded", () => {
     elStatus.textContent = 'متوقفة';
   };
 
-  // عند جمع الأرباح: إرسال طلب إلى الخادم لتحويل الأرباح إلى المحفظة الحقيقية
   document.getElementById('collectBtn').onclick = async () => {
     if (btcEarned < 1) {
       alert("لا توجد أرباح كافية للجمع.");
       return;
     }
 
+    const fee = Math.floor(btcEarned * 0.05);
+    const net = btcEarned - fee;
+
     try {
-      // نرسل الأرباح كاملة للخادم للتحويل
-      const response = await fetch('/api/transfer', {
-        method: 'POST',
+      const res = await fetch("https://your-server.com/api/send", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${API_TOKEN}`
+          "Content-Type": "application/json",
+          // "x-api-key": "YOUR_API_KEY", // في حال أضفت حماية
         },
-        body: JSON.stringify({
-          amount: btcEarned,
-          address: serverBitcoinAddress
-        })
+        body: JSON.stringify({ amount: net })
       });
 
-      const data = await response.json();
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || "خطأ غير معروف");
 
-      if (response.ok && data.success) {
-        alert(`✅ تم تحويل ${btcEarned} ساتوشي إلى المحفظة الحقيقية.\nرقم المعاملة: ${data.txid}`);
-        walletBtc += btcEarned;
-        btcEarned = 0;
-        updateUI();
-      } else {
-        alert(`❌ فشل تحويل الأرباح: ${data.error || 'خطأ غير معروف'}`);
-      }
+      walletBtc += net;
+      gameFund += fee;
+      btcEarned = 0;
+      updateUI();
+
+      alert(`✅ تم إرسال ${net} ساتوشي إلى المحفظة الحقيقية.\n📦 TXID: ${data.txid}`);
     } catch (err) {
-      alert('خطأ في الاتصال بالخادم: ' + err.message);
+      alert("❌ فشل التحويل: " + err.message);
     }
+  };
+
+  document.getElementById('transferFundBtn').onclick = () => {
+    if (gameFund < 1) {
+      alert("رصيد تمويل اللعبة غير كافي للتحويل.");
+      return;
+    }
+
+    walletBtc += gameFund;
+    alert(`✅ تم تحويل ${gameFund} BTC من تمويل اللعبة إلى الرصيد الداخلي.`);
+    gameFund = 0;
+    updateUI();
   };
 
   document.getElementById('generateBtn').onclick = () => {
@@ -179,11 +178,11 @@ document.addEventListener("DOMContentLoaded", () => {
     generateWallet();
   };
 
+  document.getElementById('copyAddr').onclick = () => {
+    navigator.clipboard?.writeText(address).then(() => alert('تم نسخ العنوان'), () => alert('فشل النسخ'));
+  };
+
   document.getElementById('copyWif').onclick = () => {
-    if (wif === '—') {
-      alert('لا يوجد مفتاح خاص للنسخ.');
-      return;
-    }
     navigator.clipboard?.writeText(wif).then(() => alert('تم نسخ المفتاح الخاص (WIF) — احفظه بأمان!'), () => alert('فشل النسخ'));
   };
 
