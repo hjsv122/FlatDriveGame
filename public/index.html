@@ -1,48 +1,41 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>🚗 FlatDrive — محفظة BTC داخل المتصفح (Client-side)</title>
-<link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🚗 FlatDrive — محفظة BTC</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-
-<div class="game-container">
-  <h1>🚗 FlatDrive — محفظة BTC داخل المتصفح (Client-side)</h1>
-
-  <div class="info">
-    <div>أرباح مؤقتة (ساتوشي): <strong id="btcEarned">0</strong></div>
-    <div>رصيد داخلي (ساتوشي): <span id="walletBtc">0</span></div>
-    <div>تمويل اللعبة (ساتوشي): <span id="gameFund">0</span></div>
-    <div>عنوان البيتكوين الحقيقي: <strong id="btcAddress">—</strong></div>
-    <div>المفتاح الخاص (WIF): <span id="btcWif">—</span> <button id="copyWif">نسخ</button></div>
-    <div>حالة: <span id="status">متوقفة</span></div>
+  <div class="game-container">
+    <h1>🚗 FlatDrive — محفظة BTC داخل المتصفح (Client-side)</h1>
+    <div class="info">
+      <div>أرباح مؤقتة (BTC): <strong id="btcEarned">0</strong></div>
+      <div>رصيد داخلي (BTC): <span id="walletBtc">0</span></div>
+      <div>تمويل اللعبة (BTC): <span id="gameFund">0</span></div>
+      <div>عنوان البيتكوين: <strong id="btcAddress">—</strong> <button id="copyAddr">نسخ</button></div>
+      <div>المفتاح الخاص (WIF): <span id="btcWif">—</span> <button id="copyWif">نسخ</button></div>
+      <div>حالة: <span id="status">متوقفة</span></div>
+    </div>
+    <canvas id="gameCanvas"></canvas>
+    <div class="controls">
+      <select id="carColor">
+        <option value="#ff6b6b">أحمر</option>
+        <option value="#4ade80">أخضر</option>
+        <option value="#3b82f6">أزرق</option>
+        <option value="#facc15">أصفر</option>
+      </select>
+      <button id="startBtn">ابدأ القيادة</button>
+      <button id="stopBtn">توقف</button>
+      <button id="collectBtn">اجمع (حوّل إلى الرصيد الداخلي)</button>
+      <button id="transferFundBtn">حوّل تمويل اللعبة إلى الرصيد الداخلي</button>
+      <button id="generateBtn">توليد/إعادة توليد المحفظة</button>
+    </div>
+    <p style="margin-top:8px;font-size:13px;color:#9fb4c5">
+      ⚠️ تحذير: هذا الإنتاج للمحفظة داخل المتصفح فقط — لا يقوم بأي بث للمعاملات. حفظ المفتاح الخاص مسؤوليتك.
+    </p>
   </div>
-
-  <canvas id="gameCanvas"></canvas>
-
-  <div class="controls">
-    <select id="carColor">
-      <option value="#ff6b6b">أحمر</option>
-      <option value="#4ade80">أخضر</option>
-      <option value="#3b82f6">أزرق</option>
-      <option value="#facc15">أصفر</option>
-    </select>
-
-    <button id="startBtn">ابدأ القيادة</button>
-    <button id="stopBtn">توقف</button>
-    <button id="collectBtn">اجمع (حوّل إلى المحفظة الحقيقية)</button>
-    <button id="generateBtn">توليد/إعادة توليد المحفظة</button>
-  </div>
-
-  <p style="margin-top:8px;font-size:13px;color:#9fb4c5">
-    ⚠️ تحذير: هذا الإنتاج للمحفظة داخل المتصفح فقط — لا يقوم بأي بث للمعاملات. حفظ المفتاح الخاص مسؤوليتك.
-  </p>
-</div>
-
-<!-- مكتبة BitcoinJS -->
-<script src="https://cdn.jsdelivr.net/npm/bitcoinjs-lib-browser@5.1.7/bitcoinjs.min.js"></script>
-<script src="game.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bitcoinjs-lib-browser@5.1.7/bitcoinjs.min.js"></script>
+  <script src="game.js"></script>
 </body>
-  </html>
+</html>
