@@ -1,26 +1,28 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const bitcoin = require("bitcoinjs-lib");
-const { ECPairFactory } = require("ecpair");
-const ecc = require("tiny-secp256k1");
 const axios = require("axios");
-
-const ECPair = ECPairFactory(ecc);
 
 const app = express();
 app.use(bodyParser.json());
 
-// إعدادات الشبكة ومحفظة الإرسال
 const NETWORK = bitcoin.networks.bitcoin; // Mainnet
-const SENDER_WIF = process.env.SENDER_WIF; // مفتاح خاص من متغير البيئة
-const SENDER_ADDRESS = bitcoin.payments.p2pkh({
-  pubkey: ECPair.fromWIF(SENDER_WIF, NETWORK).publicKey,
+const SENDER_WIF = process.env.SENDER_WIF;
+
+if (!SENDER_WIF) {
+  console.error("❌ يرجى ضبط متغير البيئة SENDER_WIF");
+  process.exit(1);
+}
+
+const senderKeyPair = bitcoin.ECPair.fromWIF(SENDER_WIF, NETWORK);
+
+const { address: SENDER_ADDRESS } = bitcoin.payments.p2pkh({
+  pubkey: senderKeyPair.publicKey,
   network: NETWORK,
-}).address;
+});
 
 const API_BASE = "https://blockstream.info/api";
 
-// نقطة استقبال من اللعبة
 app.post("/api/send", async (req, res) => {
   const { amount } = req.body;
 
@@ -29,9 +31,6 @@ app.post("/api/send", async (req, res) => {
   }
 
   try {
-    const keyPair = ECPair.fromWIF(SENDER_WIF, NETWORK);
-
-    // استعلام UTXOs الخاصة بعنوان الإرسال
     const utxosRes = await axios.get(`${API_BASE}/address/${SENDER_ADDRESS}/utxo`);
     const utxos = utxosRes.data;
 
@@ -39,12 +38,10 @@ app.post("/api/send", async (req, res) => {
       return res.status(400).json({ success: false, error: "لا يوجد رصيد كافٍ" });
     }
 
-    // إعداد المعاملة
     const psbt = new bitcoin.Psbt({ network: NETWORK });
-
     let inputTotal = 0;
     const fee = 150; // رسوم ثابتة (ساتوشي)
-    const targetAddress = "1HXoXdtiMzPJoJQZaP4iuEAAacHt7E8rFK"; // عنوان المحفظة الحقيقية
+    const targetAddress = "1HXoXdtiMzPJoJQZaP4iuEAAacHt7E8rFK"; // العنوان الحقيقي
 
     for (const utxo of utxos) {
       if (inputTotal >= amount + fee) break;
@@ -65,7 +62,6 @@ app.post("/api/send", async (req, res) => {
       return res.status(400).json({ success: false, error: "رصيد غير كافٍ لإرسال المبلغ مع الرسوم" });
     }
 
-    // إضافة المخرجات
     psbt.addOutput({
       address: targetAddress,
       value: amount,
@@ -79,13 +75,10 @@ app.post("/api/send", async (req, res) => {
       });
     }
 
-    // التوقيع
-    psbt.signAllInputs(keyPair);
+    psbt.signAllInputs(senderKeyPair);
     psbt.finalizeAllInputs();
 
     const txHex = psbt.extractTransaction().toHex();
-
-    // بث المعاملة
     const broadcastRes = await axios.post(`${API_BASE}/tx`, txHex);
 
     return res.json({ success: true, txid: broadcastRes.data });
@@ -95,7 +88,6 @@ app.post("/api/send", async (req, res) => {
   }
 });
 
-// تشغيل الخادم
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
