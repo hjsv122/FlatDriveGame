@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "خادم تحويل الأرباح باستخدام Gelato",
   "main": "server.js",
+  "type": "module",
   "scripts": {
     "start": "node server.js"
   },
