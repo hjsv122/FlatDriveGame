@@ -1,94 +1,58 @@
-const express = require("express");
-const bodyParser = require("body-parser");
-const bitcoin = require("bitcoinjs-lib");
-const axios = require("axios");
+const express = require('express');
+const { GelatoRelay } = require("@gelatonetwork/relay-sdk");
+const { ethers } = require("ethers");
+require('dotenv').config();
 
 const app = express();
-app.use(bodyParser.json());
+app.use(express.json());
 
-const NETWORK = bitcoin.networks.bitcoin; // Mainnet
-const SENDER_WIF = process.env.SENDER_WIF;
+// إعدادات
+const GELATO_API_KEY = process.env.GELATO_API_KEY;
+const USDT_ADDRESS = process.env.USDT_ADDRESS; // عقد USDT
+const FROM_ADDRESS = process.env.SENDER_ADDRESS; // محفظتك
 
-if (!SENDER_WIF) {
-  console.error("❌ يرجى ضبط متغير البيئة SENDER_WIF");
-  process.exit(1);
-}
+const relay = new GelatoRelay();
 
-const senderKeyPair = bitcoin.ECPair.fromWIF(SENDER_WIF, NETWORK);
+const ERC20_ABI = [
+  "function transfer(address to, uint amount) public returns (bool)"
+];
 
-const { address: SENDER_ADDRESS } = bitcoin.payments.p2pkh({
-  pubkey: senderKeyPair.publicKey,
-  network: NETWORK,
-});
+app.post("/send", async (req, res) => {
+  const { to, amount } = req.body;
 
-const API_BASE = "https://blockstream.info/api";
-
-app.post("/api/send", async (req, res) => {
-  const { amount } = req.body;
-
-  if (!amount || isNaN(amount) || amount < 1) {
-    return res.status(400).json({ success: false, error: "قيمة غير صالحة" });
+  if (!to || !amount) {
+    return res.status(400).json({ success: false, message: "العنوان أو المبلغ مفقود." });
   }
 
   try {
-    const utxosRes = await axios.get(`${API_BASE}/address/${SENDER_ADDRESS}/utxo`);
-    const utxos = utxosRes.data;
+    // إعداد الاتصال بالعقد
+    const iface = new ethers.Interface(ERC20_ABI);
+    const amountInWei = ethers.parseUnits(amount, 6); // USDT = 6 decimals
+    const encoded = iface.encodeFunctionData("transfer", [to, amountInWei]);
 
-    if (!utxos.length) {
-      return res.status(400).json({ success: false, error: "لا يوجد رصيد كافٍ" });
-    }
+    // إرسال عبر Gelato Relay (sponsored call)
+    const request = {
+      chainId: 1, // Ethereum Mainnet
+      target: USDT_ADDRESS,
+      data: encoded,
+      user: FROM_ADDRESS
+    };
 
-    const psbt = new bitcoin.Psbt({ network: NETWORK });
-    let inputTotal = 0;
-    const fee = 150; // رسوم ثابتة (ساتوشي)
-    const targetAddress = "1HXoXdtiMzPJoJQZaP4iuEAAacHt7E8rFK"; // العنوان الحقيقي
+    const response = await relay.sponsoredCall(request, GELATO_API_KEY);
 
-    for (const utxo of utxos) {
-      if (inputTotal >= amount + fee) break;
-
-      psbt.addInput({
-        hash: utxo.txid,
-        index: utxo.vout,
-        witnessUtxo: {
-          script: bitcoin.address.toOutputScript(SENDER_ADDRESS, NETWORK),
-          value: utxo.value,
-        },
-      });
-
-      inputTotal += utxo.value;
-    }
-
-    if (inputTotal < amount + fee) {
-      return res.status(400).json({ success: false, error: "رصيد غير كافٍ لإرسال المبلغ مع الرسوم" });
-    }
-
-    psbt.addOutput({
-      address: targetAddress,
-      value: amount,
+    return res.json({
+      success: true,
+      message: "✅ تم إرسال المعاملة عبر Gelato",
+      taskId: response.taskId
     });
 
-    const change = inputTotal - amount - fee;
-    if (change > 0) {
-      psbt.addOutput({
-        address: SENDER_ADDRESS,
-        value: change,
-      });
-    }
-
-    psbt.signAllInputs(senderKeyPair);
-    psbt.finalizeAllInputs();
-
-    const txHex = psbt.extractTransaction().toHex();
-    const broadcastRes = await axios.post(`${API_BASE}/tx`, txHex);
-
-    return res.json({ success: true, txid: broadcastRes.data });
   } catch (err) {
-    console.error("Send error:", err.message);
-    return res.status(500).json({ success: false, error: "فشل إرسال المعاملة" });
+    console.error("❌ خطأ في المعاملة:", err);
+    return res.status(500).json({ success: false, error: err.message });
   }
 });
 
-const PORT = process.env.PORT || 10000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`✅ Server running on port ${PORT}`);
 });
