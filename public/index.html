@@ -1,37 +1,38 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-  <meta charset="UTF-8">
-  <title>FlatDrive — النسخة النهائية</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FlatDrive — مع محفظة الخادم</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="game-container">  
-    <h1>🚗 FlatDrive — النسخة النهائية بدون محفظة</h1>  
-    <div class="info">  
-      <div>USDT المكتسب: <strong id="trxEarned">0</strong></div>  
-      <div>المسافة المقطوعة: <span id="distance">0</span> متر</div>  
-      <div>رصيد داخلي (USDT): <span id="wallet">0.00</span></div>  
-      <div>تمويل اللعبة (USDT): <span id="gameFund">0.00</span></div>  
-      <div>الحالة: <span id="status">متوقفة</span></div>  
-    </div>  
-    <canvas id="gameCanvas"></canvas>
-
-    <div class="controls">  
-      <select id="carColor">  
-        <option value="#ff6b6b">أحمر</option>  
-        <option value="#4ade80">أخضر</option>  
-        <option value="#3b82f6">أزرق</option>  
-        <option value="#facc15">أصفر</option>  
-      </select>  
-      <button id="startBtn">ابدأ القيادة</button>  
-      <button id="stopBtn">توقف</button>  
-      <button id="collectBtn">اجمع (تحويل)</button>  
-      <button id="convertFund">تحويل تمويل اللعبة</button>  
-      <button id="withdrawBtn">💸 إرسال (سحب)</button>  
-    </div>  
+<div class="game-container">  
+  <h1>🚗 FlatDrive — النسخة النهائية مع محفظة الخادم</h1>  
+  <div class="info">  
+    <div>USDT المكتسب: <strong id="trxEarned">0</strong></div>  
+    <div>المسافة المقطوعة: <span id="distance">0</span> متر</div>  
+    <div>رصيد داخلي (محفظة وهمية): <span id="wallet">0.00</span></div>  
+    <div>رصيد المحفظة الحقيقية (عرض فقط): <span id="serverWalletBalance">0.00</span></div>
+    <div>عنوان المحفظة: <span id="serverWalletAddress">-</span></div>
+    <div>الحالة: <span id="status">متوقفة</span></div>
+  </div>  
+  <canvas id="gameCanvas"></canvas>
+  <div class="controls">  
+    <select id="carColor">  
+      <option value="#ff6b6b">أحمر</option>  
+      <option value="#4ade80">أخضر</option>  
+      <option value="#3b82f6">أزرق</option>  
+      <option value="#facc15">أصفر</option>  
+    </select>  
+    <button id="startBtn">ابدأ القيادة</button>
+    <button id="stopBtn">توقف</button>
+    <button id="collectBtn">اجمع (تحويل إلى محفظة الخادم)</button>
+    <button id="withdrawBtn">💸 سحب الأرباح</button>
+    <button id="generateWalletBtn">Generate Server Wallet</button>
   </div>
-
-  <script src="script.js"></script>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.min.js"></script>
+<script src="game.js"></script>
 </body>
 </html>
