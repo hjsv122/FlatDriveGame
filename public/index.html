@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FlatDrive — مع محفظة الخادم</title>
+<title>🚗 FlatDrive — مع محفظة الخادم</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -13,11 +13,12 @@
     <div>USDT المكتسب: <strong id="trxEarned">0</strong></div>  
     <div>المسافة المقطوعة: <span id="distance">0</span> متر</div>  
     <div>رصيد داخلي (محفظة وهمية): <span id="wallet">0.00</span></div>  
-    <div>رصيد المحفظة الحقيقية (عرض فقط): <span id="serverWalletBalance">0.00</span></div>
-    <div>عنوان المحفظة: <span id="serverWalletAddress">-</span></div>
+    <div>رصيد المحفظة الحقيقية (عرض فقط): <span id="realWallet">0.00</span></div>
+    <div>عنوان المحفظة: <span id="walletAddress">-</span></div>
     <div>الحالة: <span id="status">متوقفة</span></div>
   </div>  
   <canvas id="gameCanvas"></canvas>
+
   <div class="controls">  
     <select id="carColor">  
       <option value="#ff6b6b">أحمر</option>  
@@ -28,11 +29,9 @@
     <button id="startBtn">ابدأ القيادة</button>
     <button id="stopBtn">توقف</button>
     <button id="collectBtn">اجمع (تحويل إلى محفظة الخادم)</button>
-    <button id="withdrawBtn">💸 سحب الأرباح</button>
-    <button id="generateWalletBtn">Generate Server Wallet</button>
-  </div>
-</div>
-<script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.min.js"></script>
-<script src="game.js"></script>
+    <button id="withdrawBtn">سحب إلى المحفظة الخارجية</button>
+  </div>  
+</div>  
+<script src="game.js" type="module"></script>
 </body>
 </html>
