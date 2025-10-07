@@ -1,36 +1,58 @@
-console.log("✅ HOT_WALLET_WIF:", process.env.HOT_WALLET_WIF ? "Loaded" : "Missing");
-console.log("✅ COLD_WALLET_WIF:", process.env.COLD_WALLET_WIF ? "Loaded" : "Missing");
-require('dotenv').config();
-const express = require('express');
-const bodyParser = require('body-parser');
-const bitcoin = require('bitcoinjs-lib');
-const fetch = require('node-fetch');
+import express from "express";
+import * as bitcoin from "bitcoinjs-lib";
+import ECPairFactory from "ecpair";
+import * as tinysecp from "tiny-secp256k1";
+import dotenv from "dotenv";
+
+dotenv.config();
+
+// ✅ تهيئة ECPair من المكتبة الجديدة
+const ECPair = ECPairFactory(tinysecp);
 
 const app = express();
-app.use(bodyParser.json());
-app.use(express.static('../public'));
+app.use(express.json());
+app.use(express.static("public"));
 
-const PORT = process.env.PORT || 3000;
+// ✅ تحميل المفاتيح من المتغيرات البيئية (Render Environment)
+const hotWif = process.env.HOT_WALLET_WIF;
+const coldWif = process.env.COLD_WALLET_WIF;
 
-// التحقق من المتغيرات البيئية
-if (!process.env.HOT_WALLET_WIF) {
-  throw new Error("HOT_WALLET_WIF غير معرف. ضع المفتاح الخاص للمحفظة الساخنة في المتغيرات البيئية.");
+if (!hotWif || !coldWif) {
+  console.error("❌ لم يتم العثور على مفاتيح المحافظ في Render Environment.");
+  process.exit(1);
 }
-if (!process.env.COLD_WALLET_WIF) {
-  throw new Error("COLD_WALLET_WIF غير معرف. ضع المفتاح الخاص للمحفظة الباردة في المتغيرات البيئية.");
-}
 
-// إعداد المحفظة الساخنة والباردة
-const hotKeyPair = bitcoin.ECPair.fromWIF(process.env.HOT_WALLET_WIF);
-const coldKeyPair = bitcoin.ECPair.fromWIF(process.env.COLD_WALLET_WIF);
+// ✅ إنشاء الأزواج من المفاتيح الخاصة
+const hotKeyPair = ECPair.fromWIF(hotWif);
+const coldKeyPair = ECPair.fromWIF(coldWif);
 
-// نقطة اختبار بسيطة
-app.get('/status', (req, res) => {
-  res.json({ status: 'server running', hotAddress: bitcoin.payments.p2pkh({ pubkey: hotKeyPair.publicKey }).address });
+// ✅ توليد العناوين العامة
+const hotAddress = bitcoin.payments.p2pkh({ pubkey: hotKeyPair.publicKey }).address;
+const coldAddress = bitcoin.payments.p2pkh({ pubkey: coldKeyPair.publicKey }).address;
+
+console.log("✅ تم تحميل المحافظ بنجاح:");
+console.log("HOT WALLET:", hotAddress);
+console.log("COLD WALLET:", coldAddress);
+
+// ✅ مسار تجريبي لتأكيد أن السيرفر يعمل
+app.get("/status", (req, res) => {
+  res.json({
+    status: "online",
+    hotWallet: hotAddress,
+    coldWallet: coldAddress,
+  });
 });
 
-// هنا تضيف باقي الأكواد الخاصة بالأرباح والتحويل بين المحفظتين
+// ✅ استقبال طلبات التحويل من اللعبة (مستقبلاً)
+app.post("/api/transfer", (req, res) => {
+  const { amount } = req.body;
+  console.log(`📦 تحويل ${amount} satoshis من المحفظة الساخنة إلى الباردة`);
+  // ملاحظة: لا يتم تنفيذ تحويل حقيقي هنا (بدون عقد/بلوكشين)
+  res.json({ success: true, message: "تم استقبال طلب التحويل (محاكاة فقط)." });
+});
 
+// ✅ تشغيل الخادم
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+  console.log(`🚀 الخادم يعمل على المنفذ ${PORT}`);
+});ط
