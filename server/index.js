@@ -1,30 +1,42 @@
-import * as bitcoin from 'bitcoinjs-lib';
-import ECPairFactory from 'ecpair';
-import * as tinysecp from 'tiny-secp256k1';
-import dotenv from 'dotenv';
-import express from 'express';
+// index.js
 
-dotenv.config();
+// ------------------------- IMPORTS -------------------------
+import * as bitcoin from 'bitcoinjs-lib'; // إذا تستخدم CommonJS استخدم: const bitcoin = require('bitcoinjs-lib');
+import tinysecp from 'tiny-secp256k1';   // إذا تستخدم CommonJS: const tinysecp = require('tiny-secp256k1');
 
-const app = express();
-const ECPair = ECPairFactory(tinysecp);
+// ------------------------- ECPAIR FACTORY -------------------------
+const { ECPairFactory } = bitcoin;
+const ECPair = ECPairFactory(tinysecp); // هذا هو الإصلاح الأساسي للخطأ السابق
 
-// تحميل المفاتيح من المتغيرات البيئية
-console.log("✅ HOT_WALLET_WIF:", process.env.HOT_WALLET_WIF ? "Loaded" : "Missing");
-console.log("✅ COLD_WALLET_WIF:", process.env.COLD_WALLET_WIF ? "Loaded" : "Missing");
+// ------------------------- إعداد المحفظة الداخلية -------------------------
+/**
+ * افترض أنك تريد استخدام محفظتك القديمة داخل اللعبة
+ * يمكنك وضع مفتاحك القديم هنا أو توليد مفتاح جديد.
+ * المثال التالي يوضح توليد زوج مفاتيح جديد:
+ */
+const keyPair = ECPair.makeRandom();
+const { address } = bitcoin.payments.p2pkh({ pubkey: keyPair.publicKey });
 
-// تأكد من وجود المفاتيح
-if (!process.env.HOT_WALLET_WIF || !process.env.COLD_WALLET_WIF) {
-  throw new Error("❌ المفاتيح غير موجودة في الإعدادات البيئية (Environment Variables).");
+console.log('Internal Wallet Address:', address);
+console.log('Private Key WIF:', keyPair.toWIF());
+
+// ------------------------- مثال إرسال USDT -------------------------
+// لاحقاً عندما ترتبط بمحفظة Tatum أو خادم:
+// ستستخدم privateKey لإرسال أرباح اللاعبين
+async function sendUSDT(toAddress, amount) {
+  // مثال توضيحي: هذا الجزء تحتاج ربطه بـ Tatum API لاحقاً
+  console.log(`Send ${amount} USDT from internal wallet ${address} to ${toAddress}`);
 }
 
-// إنشاء مفاتيح المحفظة من WIF
-const hotKeyPair = ECPair.fromWIF(process.env.HOT_WALLET_WIF);
-const coldKeyPair = ECPair.fromWIF(process.env.COLD_WALLET_WIF);
+// ------------------------- تشغيل السيرفر -------------------------
+import express from 'express'; // إذا تستخدم CommonJS: const express = require('express');
+const app = express();
+const PORT = process.env.PORT || 3000;
 
 app.get('/', (req, res) => {
-  res.send("🚀 FlatDriveGame server is running successfully!");
+  res.send(`Game Wallet Address: ${address}`);
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`✅ Server started on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
