@@ -1,3 +1,5 @@
+console.log("✅ HOT_WALLET_WIF:", process.env.HOT_WALLET_WIF ? "Loaded" : "Missing");
+console.log("✅ COLD_WALLET_WIF:", process.env.COLD_WALLET_WIF ? "Loaded" : "Missing");
 require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
